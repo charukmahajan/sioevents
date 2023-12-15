@@ -220,7 +220,7 @@
                         <br/>
                         <hr/>
                         <button type="button" title="Click here if KOT was created by mistake or it needs to be deleted anyway" class="btn btn-danger btn-sm pull-left" ng-click="vm.discardKOT($index)">Discard</button>
-                        <button type="button" title="Click here to make changes in this KOT" ng-class="{'btn-primary': vm.currentIndex== $index}" class="btn btn-sm" ng-click="vm.selectThisOrder($index)" style="align-self: center;">Selected Order</button>
+                        <button type="button" ng-if="vm.getPendingOrdersCount() > 1" title="Click here to make changes in this KOT" ng-class="{'btn-primary': vm.currentIndex== $index}" class="btn btn-sm" ng-click="vm.selectThisOrder($index)" style="align-self: center;">Selected Order</button>
                         <button ng-disabled="order.order.length==0" type="button" class="btn btn-success btn-sm pull-right" ng-click="vm.completeKOT($index)">Complete</button>
                     </div>
                 </div>
@@ -252,6 +252,8 @@
             vm.onOrderServedChange = onOrderServedChange;
             vm.selectThisOrder = selectThisOrder;
             vm.addCustomerName = addCustomerName;
+            vm.getPendingOrders = getPendingOrders;
+            vm.getPendingOrdersCount = getPendingOrdersCount;
 
             init();
 
@@ -265,6 +267,16 @@
                     sessionStorage.setItem('sioPageReloaded', 'true');
                     location.href = location.href + '?v=' + (new Date()).getTime();
                 }
+            }
+
+            function getPendingOrders() {
+                return _.filter(vm.orders, function(item) {
+                    return !item.isCompleted;
+                })
+            }
+
+            function getPendingOrdersCount() {
+                return getPendingOrders().length;
             }
 
             function addCustomerName(index) {

@@ -230,6 +230,10 @@
             function printKOT(index) {
                 var prtContent = document.getElementById('kot' + index);
                 var WinPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+                if (!WinPrint) {
+                    alert('Please allow popups.');
+                    return;
+                }
                 $(prtContent).find('button').css('display', 'none');
                 WinPrint.document.write(prtContent.innerHTML);
                 WinPrint.document.close();

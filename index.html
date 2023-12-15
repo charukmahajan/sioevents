@@ -178,6 +178,22 @@
 </head>
 
 <body ng-controller="MainColtroller as vm">
+    <div style="margin-bottom: 14px;">
+        <a style="position: absolute; right: 2px; top: 0px; font-size: 12px;" href="javascript:void(0);" ng-click="vm.toggleSettings = !vm.toggleSettings">
+            <i class="fa fa-cog" aria-hidden="true"></i>
+        </a>
+    </div>
+    <div class="row" ng-if="vm.toggleSettings">
+        <div class="col-md-3">
+            <input type="checkbox" ng-model="vm.settings.showCompletedOrders" ng-change="vm.onSettingChange()" /> Show Completed Orders
+        </div>
+        <div class="col-md-3">
+            <input type="checkbox" ng-model="vm.settings.enableKOTPrinting" ng-change="vm.onSettingChange()" /> Enable KOT Printing
+        </div>
+        <div class="col-md-3">
+            <input type="checkbox" ng-model="vm.settings.disableAllConfirmations" ng-change="vm.onSettingChange()" title="Eg, Discard, Complete will not ask for confirmation" /> Disable All Confirmations
+        </div>
+    </div>
     <div class="container-fluid text-center">
         <div class="row content">
             <div class="col-sm-3 sidenav" style="max-height: 80%; overflow-y: auto;">
@@ -202,7 +218,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-sm-3 sidenav" style="height: 80%;" ng-repeat="order in vm.orders" id="kot{{$index}}" ng-hide="order.isCompleted">
+            <div class="col-sm-3 sidenav" style="height: 80%;" ng-repeat="order in vm.orders" id="kot{{$index}}" ng-hide="order.isCompleted && !vm.settings.showCompletedOrders">
                 <div class="card">
                     <img class="onlyforPrint" src="data:image/png;base64, {{vm.logoData}}" alt="Shake It Off" style="height: 50px; width: 50px; margin-left: 43%; margin-top: 2px;" />
                     <div class="card-body" ng-class="{'selectedOrder': vm.currentIndex== $index}">
@@ -219,9 +235,9 @@
                         <span style="margin-top: 3px;float: left;">Total:</span><span style="border-top: dotted 1px;margin-top: 3px;float: right;">{{vm.getTotal($index)}}</span>
                         <br/>
                         <hr/>
-                        <button type="button" title="Click here if KOT was created by mistake or it needs to be deleted anyway" class="btn btn-danger btn-sm pull-left" ng-click="vm.discardKOT($index)">Discard</button>
+                        <button ng-disabled="order.isCompleted" type="button" title="Click here if KOT was created by mistake or it needs to be deleted anyway" class="btn btn-danger btn-sm pull-left" ng-click="vm.discardKOT($index)">Discard</button>
                         <button type="button" ng-if="vm.getPendingOrdersCount() > 1" title="Click here to make changes in this KOT" ng-class="{'btn-primary': vm.currentIndex== $index}" class="btn btn-sm" ng-click="vm.selectThisOrder($index)" style="align-self: center;">Selected Order</button>
-                        <button ng-disabled="order.order.length==0" type="button" class="btn btn-success btn-sm pull-right" ng-click="vm.completeKOT($index)">Complete</button>
+                        <button ng-disabled="order.order.length==0 || order.isCompleted" type="button" class="btn btn-success btn-sm pull-right" ng-click="vm.completeKOT($index)">Complete</button>
                     </div>
                 </div>
             </div>
@@ -234,10 +250,16 @@
 
         function MainColtroller($scope, $timeout) {
             var vm = this,
-                backUpKey = 'sioOrdersData';
+                backUpKey = 'sioOrdersData',
+                backUpKeySettings = 'sioEventsSettings';
             vm.currentOrder = [];
             vm.orders = [];
             vm.currentIndex = -1;
+            vm.settings = {
+                showCompletedOrders: false,
+                enableKOTPrinting: true,
+                disableAllConfirmations: false
+            };
             vm.logoData = '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';
 
             vm.addItem = addItem;
@@ -254,6 +276,7 @@
             vm.addCustomerName = addCustomerName;
             vm.getPendingOrders = getPendingOrders;
             vm.getPendingOrdersCount = getPendingOrdersCount;
+            vm.onSettingChange = onSettingChange;
 
             init();
 
@@ -263,10 +286,18 @@
                     vm.orders = data;
                     vm.currentIndex = vm.orders.length - 1;
                 }
+                var settings = getDataFromLocalStorage(backUpKeySettings);
+                if (settings) {
+                    vm.settings = settings;
+                }
                 if (reloadNeeded()) {
                     sessionStorage.setItem('sioPageReloaded', 'true');
                     location.href = location.href + '?v=' + (new Date()).getTime();
                 }
+            }
+
+            function onSettingChange() {
+                saveDataInLocalStorage(vm.settings, backUpKeySettings);
             }
 
             function getPendingOrders() {
@@ -337,23 +368,39 @@
                 $timeout(function() {
                     WinPrint.close();
                     $(prtContent).find('button').css('display', '');
-                    console.log(index);
-                    vm.orders[index].isCompleted = true;
-                    takeBackup();
+                    completeOrder(index);
                 }, 200);
                 WinPrint.print();
             }
 
             function completeKOT(index) {
-                var conf = confirm('Are you sure you want to complete this KOT. This action can\'t be reverted.');
+                var conf;
+                if (vm.settings.disableAllConfirmations) {
+                    conf = true;
+                } else {
+                    conf = confirm('Are you sure you want to complete this KOT. This action can\'t be reverted.');
+                }
                 if (conf) {
-                    vm.printKOT(index);
-                    takeBackup();
+                    if (vm.settings.enableKOTPrinting) {
+                        vm.printKOT(index);
+                    }
+                    completeOrder(index);
+
                 }
             }
 
+            function completeOrder(index) {
+                vm.orders[index].isCompleted = true;
+                takeBackup();
+            }
+
             function discardKOT(index) {
-                var conf = confirm('Are you sure you want to discard this KOT. This action can\'t be reverted.');
+                var conf;
+                if (vm.settings.disableAllConfirmations) {
+                    conf = true;
+                } else {
+                    conf = confirm('Are you sure you want to discard this KOT. This action can\'t be reverted.');
+                }
                 if (conf) {
                     vm.orders.splice(index, 1);
                     vm.currentIndex--;

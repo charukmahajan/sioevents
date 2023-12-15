@@ -191,7 +191,8 @@
         mainModule.controller('MainColtroller', MainColtroller);
 
         function MainColtroller($scope, $timeout) {
-            var vm = this;
+            var vm = this,
+                backUpKey = 'sioOrdersData';
             vm.currentOrder = [];
             vm.orders = [];
             vm.currentIndex = -1;
@@ -203,6 +204,16 @@
             vm.discardKOT = discardKOT;
             vm.completeKOT = completeKOT;
             vm.printKOT = printKOT;
+
+            init();
+
+            function init() {
+                var data = getDataFromLocalStorage(backUpKey);
+                if (data) {
+                    vm.orders = data;
+                    vm.currentIndex = vm.orders.length - 1;
+                }
+            }
 
             function printKOT(index) {
                 var prtContent = document.getElementById('kot' + index);
@@ -221,6 +232,7 @@
                 var conf = confirm('Are you sure you want to complete this KOT. This action can\'t be reverted.');
                 if (conf) {
                     vm.printKOT(index);
+                    saveDataInLocalStorage(vm.orders, backUpKey);
                 }
             }
 
@@ -229,6 +241,7 @@
                 if (conf) {
                     vm.orders.splice(index, 1);
                     vm.currentIndex--;
+                    saveDataInLocalStorage(vm.orders, backUpKey);
                 }
             }
 
@@ -245,6 +258,7 @@
                 });
                 console.log(vm.orders)
                 vm.currentIndex++;
+                saveDataInLocalStorage(vm.orders, backUpKey);
             }
 
             function removeItem(data, index) {
@@ -269,6 +283,7 @@
                         vm.orders.push([]);
                     }
                 }
+                saveDataInLocalStorage(vm.orders, backUpKey);
             }
 
             function addItem(data, index) {
@@ -294,6 +309,23 @@
                         price: parseInt(data.price),
                         totalPrice: parseInt(data.price)
                     });
+                }
+                saveDataInLocalStorage(vm.orders, backUpKey);
+            }
+
+            /// data is a JSON
+            function saveDataInLocalStorage(data, key) {
+                if (data && key) {
+                    localStorage.setItem(key, JSON.stringify(data));
+                }
+            }
+
+            function getDataFromLocalStorage(key) {
+                if (key) {
+                    var data = localStorage.getItem(key);
+                    if (key) {
+                        return JSON.parse(data);
+                    }
                 }
             }
 

@@ -169,7 +169,7 @@
             <div class="col-sm-2 sidenav" style="height: 60%;" ng-repeat="order in vm.orders" id="kot{{$index}}" ng-hide="order.isCompleted">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title"><b><span ng-if="!order.custName">KOT</span> {{$index+1}}<span ng-if="order.custName">.</span> {{order.custName}}</b></h5>
+                        <h5 class="card-title"><b><span ng-if="!order.custName">KOT</span><span style="font-size: 13px;float: left;">{{$index+1}}<span ng-if="order.custName">.</span></span> {{order.custName}}</b></h5>
                         <div ng-repeat="item in order.order" style="text-align: left; margin-bottom: 15px;" class="font12">
                             {{item.name}} <span style="float: right;"><a ng-click="vm.removeItem(item, $parent.$index)" href="javascript:void(0);"><i class="fa fa-minus" aria-hidden="true"></i></a> <span style="font-size: 10px;">{{item.quantity}}</span>
                             <a ng-click="vm.addItem(item, $parent.$index)" href="javascript:void(0);"><i class="fa fa-plus" aria-hidden="true"></i></a> {{item.totalPrice}}
@@ -316,7 +316,7 @@
             /// data is a JSON
             function saveDataInLocalStorage(data, key) {
                 if (data && key) {
-                    localStorage.setItem(key, JSON.stringify(data));
+                    localStorage.setItem(key, JSON.stringify(angular.copy(data)));
                 }
             }
 

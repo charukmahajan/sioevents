@@ -1,0 +1,691 @@
+<!--
+    Author: Charuk Mahajan.
+    MIT License
+
+    Copyright (c) 2023 Charuk Mahajan
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+-->
+<!DOCTYPE html>
+<html lang="en" ng-app="main">
+
+<head>
+    <title>SIO</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js" integrity="sha256-/H4YS+7aYb9kJ5OKhFYPUjSJdrtV6AeyJOtTkw6X72o=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        th {
+            background-color: blue;
+            color: white;
+            font-weight: bold;
+        }
+        
+        th,
+        td {
+            text-align: left;
+            padding: 8px;
+            vertical-align: top;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        /* Remove the navbar's default margin-bottom and rounded borders */
+        
+        .navbar {
+            margin-bottom: 0;
+            border-radius: 0;
+        }
+        
+        p {
+            margin-bottom: .65rem;
+            /*padding: 0px 30px;*/
+        }
+        
+        .btn {
+            padding: .375rem .5rem;
+        }
+        
+        .sidenav {
+            padding-left: 5px;
+            padding-right: 5px;
+            padding-top: 10px !important;
+        }
+        /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
+        
+        .row.content {
+            height: 100vh
+        }
+        /* Set gray background color and 100% height */
+        
+        .sidenav {
+            padding-top: 20px;
+            background-color: #f1f1f1;
+            height: 100%;
+        }
+        /* Set black background color, white text and some padding */
+        
+        .card-body {
+            padding: 5px!important;
+        }
+        
+        footer {
+            background-color: #555;
+            color: white;
+            padding: 15px;
+        }
+        
+        .passwordtext>input {
+            color: transparent;
+            background-color: transparent;
+            border: none;
+        }
+        
+        .passwordtext>input:hover {
+            color: inherit;
+        }
+        
+        .error {
+            color: red;
+            font-size: small;
+        }
+        
+        .font12 {
+            font-size: 12px;
+        }
+        
+        .font13 {
+            font-size: 13px;
+        }
+        
+        .font14 {
+            font-size: 14px;
+        }
+        
+        .font30 {
+            font-size: 30px;
+        }
+        /* On small screens, set height to 'auto' for sidenav and grid */
+        
+        @media screen and (max-width: 767px) {
+            .sidenav {
+                height: auto;
+                padding: 15px;
+            }
+            .row.content {
+                height: auto;
+            }
+        }
+    </style>
+</head>
+
+<body ng-controller="MainColtroller as vm">
+    <div class="container-fluid text-center">
+        <div class="row content">
+            <div class="col-sm-2 sidenav">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title pull-right" style="cursor: pointer;" ng-click="vm.addNewOrder()"><i class="fa fa-2x fa-plus-square" aria-hidden="true"></i></div>
+                        <br/>
+                        <input type="text" style="width: 90%;height: 24px;" placeholder="Type to filter" ng-model="vm.filter" />
+                        <p ng-repeat="data in vm.data |filter:vm.filter" style="text-align: left;" class="font14">
+                            <a ng-click="vm.addItem(data, vm.currentIndex)" href="javascript:void(0);" title="{{data.description}}">{{$index+1}}. {{data.name}}</a>
+                            <!--<button ng-if="data.class" type="button" ng-class="data.class" class="btn btn-block btn-sm" ng-click="vm.performAction(data.action)">{{data.name}}<span ng-if="data.openCount" style="float: right;font-size: 8px;"><b>{{data.openCount}}</b></span></button>
+                            <button ng-if="!data.class" type="button" ng-class="{'btn-success': $index % 2 == 0, 'btn-outline-success': $index % 2 != 0 }" class="btn btn-block btn-sm" ng-click="vm.performAction(data.action)">{{data.name}}<span ng-if="data.openCount" style="float: right;font-size: 8px;"><b>{{data.openCount}}</b></span></button>-->
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 sidenav" style="height: 60%;" ng-repeat="order in vm.orders" id="kot{{$index}}" ng-hide="order.isCompleted">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"><b><span ng-if="!order.custName">KOT</span> {{$index+1}}<span ng-if="order.custName">.</span> {{order.custName}}</b></h5>
+                        <div ng-repeat="item in order.order" style="text-align: left; margin-bottom: 15px;" class="font12">
+                            {{item.name}} <span style="float: right;"><a ng-click="vm.removeItem(item, $parent.$index)" href="javascript:void(0);"><i class="fa fa-minus" aria-hidden="true"></i></a> <span style="font-size: 10px;">{{item.quantity}}</span>
+                            <a ng-click="vm.addItem(item, $parent.$index)" href="javascript:void(0);"><i class="fa fa-plus" aria-hidden="true"></i></a> {{item.totalPrice}}
+                            </span>
+                        </div>
+                        <span style="border-top: dotted 1px;margin-top: 3px;float: right;">{{vm.getTotal($index)}}</span>
+                        <br/>
+                        <hr/>
+                        <button type="button" class="btn btn-danger btn-sm" ng-click="vm.discardKOT($index)">Discard</button>
+                        <button ng-disabled="order.order.length==0" type="button" class="btn btn-success btn-sm" ng-click="vm.completeKOT($index)">Complete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a id="downloadAnchorElem" style="display:none"></a>
+    <script type="text/javascript">
+        var mainModule = angular.module('main', []);
+        mainModule.controller('MainColtroller', MainColtroller);
+
+        function MainColtroller($scope, $timeout) {
+            var vm = this;
+            vm.currentOrder = [];
+            vm.orders = [];
+            vm.currentIndex = -1;
+
+            vm.addItem = addItem;
+            vm.removeItem = removeItem;
+            vm.addNewOrder = addNewOrder;
+            vm.getTotal = getTotal;
+            vm.discardKOT = discardKOT;
+            vm.completeKOT = completeKOT;
+            vm.printKOT = printKOT;
+
+            function printKOT(index) {
+                var prtContent = document.getElementById('kot' + index);
+                var WinPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+                $(prtContent).find('button').css('display', 'none');
+                WinPrint.document.write(prtContent.innerHTML);
+                WinPrint.document.close();
+                WinPrint.focus();
+                WinPrint.print();
+                WinPrint.close();
+                $(prtContent).find('button').css('display', '');
+                vm.orders[index].isCompleted = true;
+            }
+
+            function completeKOT(index) {
+                var conf = confirm('Are you sure you want to complete this KOT. This action can\'t be reverted.');
+                if (conf) {
+                    vm.printKOT(index);
+                }
+            }
+
+            function discardKOT(index) {
+                var conf = confirm('Are you sure you want to discard this KOT. This action can\'t be reverted.');
+                if (conf) {
+                    vm.orders.splice(index, 1);
+                    vm.currentIndex--;
+                }
+            }
+
+            function getTotal(index) {
+                return _.chain(vm.orders[index].order).map('totalPrice').sum().value();
+            }
+
+            function addNewOrder() {
+                //vm.orders = Object.assign([], vm.orders);
+                var custName = prompt('Please enter customer name');
+                vm.orders.push({
+                    'custName': custName,
+                    order: []
+                });
+                console.log(vm.orders)
+                vm.currentIndex++;
+            }
+
+            function removeItem(data, index) {
+                if (index < 0) {
+                    return;
+                }
+                if (!index) {
+                    index = 0;
+                }
+                if (!vm.orders[index]) {
+                    vm.orders[index] = [];
+                }
+                var indx = _.findIndex(vm.orders[index].order, function(o, i) {
+                    return o.name == data.name;
+                });
+                if (vm.orders[index].order[indx].quantity > 1) {
+                    vm.orders[index].order[indx].quantity--;
+                    vm.orders[index].order[indx].totalPrice = vm.orders[index].order[indx].quantity * vm.orders[index].order[indx].price;
+                } else {
+                    vm.orders[index].order.splice(indx, 1);
+                    if (vm.orders.length === 0) {
+                        vm.orders.push([]);
+                    }
+                }
+            }
+
+            function addItem(data, index) {
+                if (index < 0) {
+                    return;
+                }
+                if (!index) {
+                    index = 0;
+                }
+                if (!vm.orders[index]) {
+                    vm.orders[index] = [];
+                }
+                var item = _.find(vm.orders[index].order, function(o) {
+                    return o.name == data.name;
+                });
+                if (item) {
+                    item.quantity++;
+                    item.totalPrice = item.quantity * item.price;
+                } else {
+                    vm.orders[index].order.push({
+                        name: data.name,
+                        quantity: 1,
+                        price: parseInt(data.price),
+                        totalPrice: parseInt(data.price)
+                    });
+                }
+            }
+
+            var data = [{
+                "name": "Cold Coffee - Banana",
+                "description": "Introducing our Banana Bliss Thick Cold Coffee – a luscious blend that takes the classic cold coffee to new heights of indulgence. Immerse yourself in the velvety richness of this concoction, where the smoothness of chilled coffee meets the natural sweetness of ripe bananas. Your quest for the ultimate thick and flavorful beverage ends here.",
+                "price": "249"
+            }, {
+                "name": "Cold Coffee - Brownie",
+                "description": "Indulge in the epitome of richness with our Brownie Bliss Thick Cold Coffee – a heavenly blend that transcends the ordinary.",
+                "price": "269"
+            }, {
+                "name": "Cold Coffee - Choca Mocho",
+                "description": "Crafted to perfection, this rich and robust mocha masterpiece combines the bold notes of premium coffee with an indulgent touch of decadent chocolate, creating a luxuriously thick texture that sets it apart. Each sip promises a symphony of flavors, satisfying your cravings for both coffee and dessert.",
+                "price": "239"
+            }, {
+                "name": "Cold Coffee - Cinnamon",
+                "description": "Embark on a journey of indulgence with our Cinnamon Euphoria Thick Cold Coffee – a decadent symphony of flavors that will redefine your coffee experience.",
+                "price": "279"
+            }, {
+                "name": "Cold Coffee Classic",
+                "description": "Thick, creamy and indulgent, our ice cream cold coffee is the perfect treat for coffee lovers with a sweet tooth. Made with a generous scoop of premium vanilla ice cream and chilled coffee, this drink is blended to perfection for a velvety smooth texture that's guaranteed to satisfy. This cold coffee is a dessert and drink in one.",
+                "price": "199"
+            }, {
+                "name": "Cold Coffee - Ferrero",
+                "description": "Savor the lavish indulgence of our irresistibly thick and creamy Ferrero Rocher-infused ice cream cold coffee – a true delight designed for coffee connoisseurs with a sweet inclination. Revel in the opulence of this treat, expertly crafted with a generous scoop of premium vanilla ice cream and the delightful addition of Ferrero Rocher chocolates, seamlessly blended into chilled coffee.",
+                "price": "299"
+            }, {
+                "name": "Cold Coffee - Hazelnut Shot",
+                "description": "Luxuriously thick and creamy, our hazelnut-infused ice cream cold coffee is a delectable delight tailored for coffee enthusiasts with a penchant for sweetness. Featuring a lavish scoop of premium vanilla ice cream and a shot of rich hazelnut flavor in chilled coffee, this concoction is expertly blended to achieve a velvety smooth texture that promises pure satisfaction. Experience the perfect fusion of dessert and beverage in every sip of this indulgent hazelnut-infused cold coffee.",
+                "price": "289"
+            }, {
+                "name": "Cold Coffee - Nutella",
+                "description": "Indulge in the opulence of our sumptuously thick and creamy Nutella-infused ice cream cold coffee – a true delight for coffee aficionados with a sweet tooth.",
+                "price": "289"
+            }, {
+                "name": "Cold Coffee - Oreo",
+                "description": "Experience the robust decadence of our strong and thick Oreo-infused ice cream cold coffee – a luscious delight crafted specifically for coffee enthusiasts with a sweet inclination. This cold coffee transcends the boundaries between dessert and beverage, offering a truly indulgent experience in every sip.",
+                "price": "249"
+            }, {
+                "name": "Cold Coffee - Strong",
+                "description": "Bold, creamy, and irresistibly indulgent, our extra-strong ice cream cold brew is a coffee lover's dream come true. Crafted with an extra dose of rich, chilled coffee and a generous scoop of premium vanilla ice cream, this beverage is meticulously blended to achieve a velvety smooth texture that promises to satisfy even the most discerning palates. Elevate your coffee experience with this decadent fusion of dessert and beverage in every sip of this cold coffee delight.",
+                "price": "219"
+            }, {
+                "name": "Banananana Thicccc Shake",
+                "description": "A healthy and creamy shake prepared with ripe banana and milk is rich in potassium, dietary fibre and energy. In this shake recipe, banana provides the primary base for smoothness but ice cream gives richer creaminess to its texture. Cardamom, even though in small amount, gives it an enticing flavor",
+                "price": "228.58"
+            }, {
+                "name": "Blueberry Nights Thicccc Shake",
+                "description": "Blueberry thickshake prepared with frozen blueberries, vanilla ice cream and low fat slim milk tastes heavenly sweet and creamy and it?s an anytime treat for a sweet tooth in you. Lift your summer spirit by having healthy blueberry shake for breakfast or dessert today.",
+                "price": "239.85"
+            }, {
+                "name": "Kitty Kat Thicccc Shake - Choco",
+                "description": "On Popular Demand! Creamy blend of Choco ice-cream, Kit Kat, and milk creating a rich, satisfying thickshake delight.",
+                "price": "280.85"
+            }, {
+                "name": "Kitty Kat Thicccc Shake",
+                "description": "The kitkat thickshake has a luscious, chocolaty mouth-feel, punctuated by crunchy titbits of Kitkat blend in vanilla icecream. The rich taste and unique mouth-feel make it a unique pleasure drink that is incomparable to any other milkshakes.",
+                "price": "250.10"
+            }, {
+                "name": "O! Rio Shake [oreo] Thicccc Shake - Choco",
+                "description": "On Popular Demand! Indulge in a heavenly blend of rich chocolate and crushed Oreo cookies, a delightful Choco Oreo thickshake treat!",
+                "price": "270.60"
+            }, {
+                "name": "O! Rio [oreo] Thicccc Shake",
+                "description": "Your search for the best Oreo shake ends here. Albeit we keep a bit purist approach towards making our shakes and eschew toppings but you don?t have to comply with us. Please go ahead and make all your choices :)",
+                "price": "239.85"
+            }, {
+                "name": "Pink Floyd [strawberry] Thicccc Shake]",
+                "description": "Coming back to life with a Strawberry thick shake prepared with this recipe which is simply heaven because it uses bare minimum ingredients like fresh/frozen strawberries, milk, and ice cream to bring out three good qualities of any shake; fresh, creamy, and flavorful.",
+                "price": "239.85"
+            }, {
+                "name": "St. Patrick [green Mint] Thiccc Shake",
+                "description": "The old gold St Patrick is back to blow your minds away with the minty cool kick in your vanilla shake",
+                "price": "239.85"
+            }, {
+                "name": "Vanilla Sky Thicccc Shake",
+                "description": "Vanilla Milkshake, world's favorite milkshake, is a smooth and creamy concoction of our custom vanilla ice cream, milk, vanilla extract topped up - all to deliver the best Vanilla shake ever",
+                "price": "228.58"
+            }, {
+                "name": "Aam Adami Thicccc Shake [ Mango Shake]",
+                "description": "Aam Adami can be special!",
+                "price": "250.10"
+            }, {
+                "name": "Blueberry Cheesecake Thicccc Shake",
+                "description": "Sometimes you dont feel like eating aeven a  cheesecake. So we made a shake out of it.",
+                "price": "261.82"
+            }, {
+                "name": "Chocoholic [signature Chocolate] Thicccc Shake",
+                "description": "Chocolate thickshake, a name itself makes juices flowing in the mouth. No milkshake can ever come close to the divine taste of rich and creamy milkshake prepared with this recipe as flavor of its three simple ingredients; slim milk, chocolate sauce and ice cream is enhanced by our tactful blending.",
+                "price": "250.10"
+            }, {
+                "name": "Guardians Of The Galaxy [galaxy N Gems] Thicccc Shake",
+                "description": "Galaxy and gems in a secret choco blend.",
+                "price": "261.38"
+            }, {
+                "name": "Mixed Berry Banana Thicccc Shake",
+                "description": "Indulge in a blissful blend of fresh mixed berries and ripe bananas in our luscious thick shake. Creamy, fruity perfection awaits in every sip—a delightful fusion of flavors!",
+                "price": "260.35"
+            }, {
+                "name": "Mixed Berry Thicccc Shake",
+                "description": "I used to be indecisive before, but now i am not sure. Hence, mixed berries!",
+                "price": "250.10"
+            }, {
+                "name": "Nutorious Big [peanut Butter Banana] Thicccc Shake",
+                "description": "\"Aaaah! One Of My Mains! I Choose Nutorious Big As A Reward Shake After An Intense Workout\" ~ Rajeev (Bangalore)",
+                "price": "261.38"
+            }, {
+                "name": "Salty Carrie [salted Caramel Thicccc Shake]",
+                "description": "I am frequent traveler to Bangalore in all my visits, one thing is common and that is having a Salty Carrie shake at Shake It Off",
+                "price": "250.10"
+            }, {
+                "name": "Sinful Red [red Velvet Thicccc Shake]",
+                "description": "The best redvelevet shake in town ... now i know :P :P",
+                "price": "261"
+            }, {
+                "name": "The Breakup [chocolate Brownie Thicccc Shake]",
+                "description": "This Brownie shake, aka \"The Break Up Shake\" is a super decadent treat every chocolate lover should taste at least once! Loaded with brownie chunks and decorated with choco sauce, this thickshake is packed with delicious chocolate flavour.",
+                "price": "261.38"
+            }, {
+                "name": "Ferrero Rocher Thicccc Shake",
+                "description": "At Shake It Off, you know it's the real ones and not the replicas.",
+                "price": "316.73"
+            }, {
+                "name": "Lotus Biscoff Thicccc Shake",
+                "description": "This is the new talk of the town. Made from premium imported lotus biscoff spread and cookies in our secret vanilla magic blend.",
+                "price": "316.73"
+            }, {
+                "name": "New Snicka Snicka [Snickers] Thicccc Shake",
+                "description": "Give up on anger. Order  Snicka Snicka! Now with more snickers added to the Vanilla",
+                "price": "306.48"
+            }, {
+                "name": "Nutella Ella Ella Thicccc Shake",
+                "description": "This description was generated by ChatGPT: A Nutella thickshake is a creamy and indulgent beverage made by blending together ice cream, milk, and Nutella, a chocolate-hazelnut spread. The ingredients are combined in a blender until smooth and creamy, and the resulting shake is thick enough to be enjoyed with a straw or spoon. The flavor of the shake is predominantly chocolate and hazelnut, with a rich and creamy texture that is both satisfying and refreshing",
+                "price": "239"
+            }, {
+                "name": "Smoressss [roasted Marshmallows] Thicccc Shakes)",
+                "description": "Re launching it after 2017. Order away!",
+                "price": "296.23"
+            }, {
+                "name": "Coffee Latte (variants Available)",
+                "description": "Embark on a journey of coffee delight with our exquisite Coffee Latte. Immerse yourself in the harmonious marriage of premium espresso and velvety steamed milk—a true indulgence for your senses.",
+                "price": "203.98"
+            }, {
+                "name": "Hot Chocolate (variants Available)",
+                "description": "Savor the warmth of pure bliss with our indulgent hot chocolate. Rich, velvety cocoa goodness meets a swirl of creamy perfection—every sip is a comforting hug for your soul.",
+                "price": "234.73"
+            }, {
+                "name": "Warm Kit Kat Shake",
+                "description": "You've asked for it. You wanted it. You are paying for it. It's warm, not hot.",
+                "price": "234.73"
+            }, {
+                "name": "Warm Oreo Shake",
+                "description": "You've asked for it. You wanted it. You are paying for it. It's warm, not hot.",
+                "price": "224.48"
+            }, {
+                "name": "Warm Vanilla Shake",
+                "description": "A warm creamy milkshake that got no chills.",
+                "price": "203.98"
+            }, {
+                "name": "Kidz Gog Milkshake",
+                "description": "Kidz Guardians Of the Galaxy Shake. This is more of slim milk and less of icecream",
+                "price": "234.73"
+            }, {
+                "name": "Kidz Kitty Kat Milkshake",
+                "description": "Kidz Kit Kat Shake. This is more of slim milk and less of icecream",
+                "price": "234.73"
+            }, {
+                "name": "Kidz Oreo Milkshake",
+                "description": "Kidz Oreo Shake. This is more of slim milk and less of icecream",
+                "price": "224.48"
+            }, {
+                "name": "Kidz Vanilla Milkshake",
+                "description": "Kidz Guardians Of the Galaxy Shake. This is more of slim milk and less of icecream",
+                "price": "214.23"
+            }, {
+                "name": "2 In 1 (vanilla And Choco) Thiccccshake",
+                "description": "Indulge in the irresistible fusion of flavors with our 2-in-1 Vanilla and Chocolate Thickshake. This delectable treat combines the smoothness of creamy vanilla with the richness of velvety chocolate, creating a heavenly blend that satisfies your sweet cravings and leaves you craving for more. A delightful harmony in every sip!",
+                "price": "255.23"
+            }, {
+                "name": "Almond Snickers Thicccc Shake",
+                "description": "Enjoy the delightful Almond Flavor Thick Shake, blending creamy vanilla ice cream with  the irresistible taste of Snickers Almond bars. A heavenly treat!",
+                "price": "265.48"
+            }, {
+                "name": "Lycheeee Thicccc Shake",
+                "description": "Say Lycheeee! Limited Edition",
+                "price": "243"
+            }, {
+                "name": "Popcorn Caramel Thicccc Shake",
+                "description": "Indulge in the irresistible delight of a Popcorn Caramel Shake. This delectable blend of creamy caramel and buttery popcorn flavors will transport your taste buds to a state of pure bliss.",
+                "price": "255.23"
+            }, {
+                "name": "Tricolor Thicccc Shake",
+                "description": "Experience the delightful Tricolor thick shake, a captivating fusion of luscious mango, creamy vanilla, and refreshing green mint. Its harmonious blend of flavors will leave you yearning for another sip.",
+                "price": "265.48"
+            }, {
+                "name": "Cool Blue",
+                "description": "We mix the lemon and curacao together in the presence of soda. Curacao is made from the peel of the Laraha citrus fruit (which has been dried) and is grown on the island of Curacao, hence the name. These are delivered in glass jars to give you a better soda drink experience.",
+                "price": "238.83"
+            }, {
+                "name": "Green Mint Breeze",
+                "description": "Peppermint lime and soda to help you get through anything like a breeze. These are delivered in glass jars to give you a better soda drink experience. What do you do with these jars? Well, you can always use them in your kitchen, garden, study table orrr just return it back to our store and get Rs 30 off (per bottle with lid) on your store orders with us. Sounds good? Just sha sha shake it off!",
+                "price": "238.83"
+            }, {
+                "name": "Kala Jamun Khatta In Soda",
+                "description": "Limited Edition Premium Indian Flavor",
+                "price": "259.33"
+            }, {
+                "name": "Masala Lemon Soda (limited)",
+                "description": "Zero sugar",
+                "price": "239"
+            }, {
+                "name": "Virgin Mojito",
+                "description": "A refreshing mix of lime and mint, this Virgin Mojito Recipe will be your new favorite soda drink. This mojito mocktail recipe treats both kids and adults alike. These are delivered in glass jars to give you a better soda drink experience. What do you do with these jars? Well, you can always use them in  your kitchen, garden, study table orrr just return it back to our store and get Rs 30 off (per bottle with lid) on your store orders with us. Sounds good? Just sha sha shake it off!",
+                "price": "238.83"
+            }, {
+                "name": "Breakfast Shake",
+                "description": "Slim Milk, Muesli, Banana, Oats, Mixed Berries, Honey, Chia Seeds",
+                "price": "275.73"
+            }, {
+                "name": "Desi Protein Shake- Sattu (Savory)",
+                "description": "Desi protein shake is a savory drink made of sattu (roasted horse gram) lemon and chatpata masala. Give it a try! You will love its taste, and health benefits that come naturally",
+                "price": "179"
+            }, {
+                "name": "Froyo Shake #1 - Banana, Mixed Berries, Chia",
+                "description": "Tasty And Healthy Short Meal With Banana Power | Energy: 207 Cals, Fat: 1.1G, Protein: 1.9G, Carbs: 36.5G",
+                "price": "290.08"
+            }, {
+                "name": "Froyo Shake #2 - Muesli, Mixed Berries, Chia",
+                "description": "Tasty And Healthy Short Meal With Muesli Muscle | Energy: 198 Cals, Fat: 1.3G, Protein: 2.5G, Carbs: 32.6G",
+                "price": "290.08"
+            }, {
+                "name": "Froyo Shake #3 - Kiwi, Mixed Berries, Chia",
+                "description": "Tasty And Healthy Short Meal With Lean Kiwi | Energy: 187 Cals, Fat: 1.1G, Protein: 1.8G, Carbs: 30.8G",
+                "price": "290.08"
+            }, {
+                "name": "Vegan Whey Protein Smoothie",
+                "description": "This vegan smoothie is made with oat milk, plant whey protein, blueberries, banana and chia seeds. The oat milk provides a creamy base for the shake, while the blueberries and banana add natural sweetness and a burst of flavor. The chia seeds provide a source of healthy fats and added texture, and a dash of maple adds a touch of natural sweetness. This smoothie is a delicious and nutritious option for those following a vegan diet.",
+                "price": "299"
+            }, {
+                "name": "Whey Protein Shake",
+                "description": "That's the whey! Maaahi whey .... Pure authentic MB chocolate flavor. We add half a banana into it as standard recipe. Please mention if you don't want banana in your shake and we take care of it.",
+                "price": "238.83"
+            }, {
+                "name": "Whey Protein Shake (with Peanut Butter)",
+                "description": "Whether you're looking for a post-workout snack or a satisfying breakfast on the go, this whey protein shake with peanut butter is the perfect choice. It's filling, delicious, and nutritious all at once! PS: It has no banana",
+                "price": "299"
+            }, {
+                "name": "Genie Shake",
+                "description": "As You Please, Master! You Have All The Choices To Pick And Make Your Kind Of A Thiccccshake! Go Ahead, Surprise Me! Ps: If You Order Your Type Of Shake 10 Times In A Month, We Give It Your Name And Put It On The Menu.",
+                "price": "227.55"
+            }, {
+                "name": "The Happiness Combo",
+                "description": "Maggi &amp; Beverage Combo (+Salted Fries @ 79)",
+                "price": "321.34"
+            }, {
+                "name": "Any 2 Thickshake Shakes + Ek Tha Veg Burger",
+                "description": "Any 2 Thickshake Shakes + Ek Tha Veg Burger (I'm always HANGRY)(+Salted Fries @ 79)",
+                "price": "487.94"
+            }, {
+                "name": "The Mountain Combo",
+                "description": "Maggi &amp; Momos Combo (+Salted Fries @ 79)",
+                "price": "310.32"
+            }, {
+                "name": "The Popular Combo",
+                "description": "Burger &amp; Soda Cooler Combo (+Salted Fries @ 79)",
+                "price": "330.41"
+            }, {
+                "name": "Cheesy Veg Momos",
+                "description": "Freshly made dumplings with no question of preservatives",
+                "price": "179"
+            }, {
+                "name": "Fried Cheesy Veg Momos",
+                "description": "A meaningful substitute for cheese balls. BTW we love cheese balls too.",
+                "price": "189"
+            }, {
+                "name": "Fried Palak Paneer Momos",
+                "description": "Fried Palak Paneer Momos are delectable dumplings made with a spinach-infused dough, filled with a flavorful mixture of cottage cheese, spices, and herbs, and deep-fried to crispy perfection. Deliciously irresistible!",
+                "price": "189"
+            }, {
+                "name": "Fried Veg Momos",
+                "description": "Freshly made dumplings with no question of preservatives",
+                "price": "169"
+            }, {
+                "name": "Palak Paneer Momos (8 Pcs) (New)",
+                "description": "Savor the fusion of flavors with our Palak Paneer Momos. Delicate dumplings filled with the richness of paneer and the earthy goodness of spinach, a delectable twist on traditional momos.",
+                "price": "181"
+            }, {
+                "name": "Pan Tossed Cheesy Veg Momos",
+                "description": "On public demand. Elevate your taste buds with our Pan Tossed Veg Momos, generously coated in spicy Schezwan chutney. A perfect harmony of textures and flavors in every delightful bite awaits!",
+                "price": "209"
+            }, {
+                "name": "Pan Tossed Palak Paneer Momos",
+                "description": "On public demand. Elevate your taste buds with our Pan Tossed Veg Momos, generously coated in spicy Schezwan chutney. A perfect harmony of textures and flavors in every delightful bite awaits!",
+                "price": "199"
+            }, {
+                "name": "Pan Tossed Veg Momos",
+                "description": "On public demand. Elevate your taste buds with our Pan Tossed Veg Momos, generously coated in spicy Schezwan chutney. A perfect harmony of textures and flavors in every delightful bite awaits!",
+                "price": "189"
+            }, {
+                "name": "Veg Momos",
+                "description": "Freshly made dumplings with no question of preservatives",
+                "price": "159"
+            }, {
+                "name": "Garlic-herb Fries",
+                "description": "Fresh garlic and herbs is a combination to die for.",
+                "price": "207.04"
+            }, {
+                "name": "Peri Peri Fries",
+                "description": "Our incredible peri peri fries.",
+                "price": "207.04"
+            }, {
+                "name": "Potato Wedges - Garlic Herb",
+                "description": "Garlic herb potato wedges are a delicious and easy to make side dish. They are made by cutting potatoes into wedges, and then seasoning them with a mixture of garlic and herbs. They are then fried fresh to leave them crispy on the outside and tender on the inside. The garlic and herbs give the wedges a rich and flavorful taste that pairs well with a variety of thickshakes and cooler drinks.",
+                "price": "227.85"
+            }, {
+                "name": "Potato Wedges - Peri Peri",
+                "description": "Peri kah ke lunga!",
+                "price": "227.85"
+            }, {
+                "name": "Potato Wedges - Salted",
+                "description": "We Are The Edges Of Shake It Off",
+                "price": "207.04"
+            }, {
+                "name": "Salted Fries",
+                "description": "Our classic salted fries.",
+                "price": "186.23"
+            }, {
+                "name": "Ek Tha Paneer Burger",
+                "description": "For paneer is in demand.",
+                "price": "207.04"
+            }, {
+                "name": "Ek Tha Veg Burger",
+                "description": "Ek tha veg  - as always. Since 2016",
+                "price": "186.23"
+            }, {
+                "name": "Sara Chilli Wala Burger (double Patty)",
+                "description": "Enjoy the robust satisfaction of our double patty herb chili burger. Twin succulent patties, infused with savory herbs and a spicy kick, deliver an unforgettable taste adventure for burger enthusiasts.",
+                "price": "207.04"
+            }, {
+                "name": "We Desi Burger",
+                "description": "Chatpata Masala - Aalo Pyaaz Tamatar Kheera Wala. Expect Green Chutney",
+                "price": "175.83"
+            }, {
+                "name": "Cheese Corn Sammich",
+                "description": "Indulge In The Irresistible Delight Of Our Cheese Corn Sandwich. Savor The Perfect Harmony Of Creamy Melted Cheese, Sweet Corn Kernels, And A Hint Of Tangy Spices, All Nestled Between Slices Of Soft, Toasted Bread. A Flavorful Symphony That Will Leave You Craving For More.",
+                "price": "153.98"
+            }, {
+                "name": "Cheesy Paneer Peri Peri Sammich",
+                "description": "Bite into this mouthgasm of paneer, cheese and peri peri.",
+                "price": "164.41"
+            }, {
+                "name": "Jain Veg Club Sammich",
+                "description": "We hear you Jain folks. Feel free to ask for customization",
+                "price": "174.78"
+            }, {
+                "name": "Mexican Grill Cheese Sammich",
+                "description": "Three types of cheese with a little Mexican twist.",
+                "price": "164.38"
+            }, {
+                "name": "Mixed Herb Cheese Sammich",
+                "description": "A mouthwatering delight in every bite. It is filled with cottage cheese and herbs that we all love.",
+                "price": "174.78"
+            }, {
+                "name": "Nutella Banana Sammich",
+                "description": "Enjoy your breakfast with our Nutella Banana Sammich – a heavenly blend of chocolate hazelnut and ripe bananas",
+                "price": "174.78"
+            }, {
+                "name": "Paneer Schezwan Sammich",
+                "description": "I love this combination between the soft bread and these guys do it very nicely ~ Bikram (Chennai)",
+                "price": "164.38"
+            }, {
+                "name": "Veg Club Sammich",
+                "description": "Experience the ultimate veggie delight with our Veg Club Sandwich. A symphony of flavors that will leave you satisfied and craving for more.",
+                "price": "174.78"
+            }, {
+                "name": "Veg Mushroom Cheese Melt Sammich",
+                "description": "Much room for mushrooms again, They are back!",
+                "price": "174.78"
+            }, {
+                "name": "Veg Paneer Cheese Melt Sammich",
+                "description": "Paneer and cheese made with a sio secret marinade.",
+                "price": "164.38"
+            }, {
+                "name": "Classic Maggi (Customizable)",
+                "description": "Wanna do some maggi experiment?",
+                "price": "92.60"
+            }];
+            vm.data = _.toArray(data)
+            console.log(vm.data);
+        }
+    </script>
+</body>
+
+</html>

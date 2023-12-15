@@ -213,6 +213,18 @@
                     vm.orders = data;
                     vm.currentIndex = vm.orders.length - 1;
                 }
+                if (reloadNeeded()) {
+                    sessionStorage.setItem('sioPageReloaded', 'true');
+                    location.href = location.href + '?v=' + (new Date()).getTime();
+                }
+            }
+
+            function reloadNeeded() {
+                var reloaded = sessionStorage.getItem('sioPageReloaded');
+                if (reloaded) {
+                    return false;
+                }
+                return true;
             }
 
             function printKOT(index) {

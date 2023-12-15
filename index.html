@@ -184,13 +184,20 @@
                 <div class="card">
                     <a href="https://shakeitoff.in/" style="margin: 8px 0px 0px 8px; position: absolute; left: 0px;" target="_blank"><img src="data:image/png;base64, {{vm.logoData}}" alt="Shake It Off" style="height: 50px; width: 50px;" /></a>
                     <div class="card-body">
-                        <div class="card-title" style="cursor: pointer; position: absolute;top:0px;right: 0px; margin: 6px 6px 0px 0px;" title="Create new Order/KOT" ng-click="vm.addNewOrder()" accesskey="N"><i class="fa fa-2x fa-plus-square" aria-hidden="true"></i></div>
+                        <div class="card-title" style="cursor: pointer; position: absolute;top:0px;right: 0px; margin: 6px 6px 0px 0px;" title="Create new Order/KOT" ng-click="vm.addNewOrder()" accesskey="N">
+                            <i class="fa fa-2x fa-plus-square" aria-hidden="true"></i>
+                        </div>
                         <br/>
                         <br/>
                         <br/>
                         <input type="text" tabindex="1" style="width: 90%;height: 24px;" placeholder="Type to filter" accesskey="L" ng-model="vm.filter" />
                         <p ng-repeat="data in vm.data |filter:vm.filter" style="text-align: left;" class="font14">
-                            <a ng-click="vm.addItem(data, vm.currentIndex)" href="javascript:void(0);" title="{{data.description}}">{{$index+1}}. {{data.name}}</a>
+                            <label style="width:85%;">
+                                <a ng-click="vm.addItem(data, vm.currentIndex)" href="javascript:void(0);" title="{{data.description}}" style="width: 70%;">
+                                    {{$index+1}}. {{data.name}}
+                                </a>
+                            </label>
+                            <span style="position: absolute; right: 3px;">{{data.price}}</span>
                         </p>
                     </div>
                 </div>
@@ -200,16 +207,16 @@
                     <img class="onlyforPrint" src="data:image/png;base64, {{vm.logoData}}" alt="Shake It Off" style="height: 50px; width: 50px; margin-left: 43%; margin-top: 2px;" />
                     <div class="card-body" ng-class="{'selectedOrder': vm.currentIndex== $index}">
                         <div class="card-title" style="font-size: 16px;margin-bottom:2px;"><b>KOT<span style="font-size: 14px;"> - {{vm.getKOTToDisplay($index)}}</b></div>
-                        <a ng-if="!order.custName" href="javascript:void(0);" ng-click="vm.addCustomerName($index)" title="Add Customer Name" class="notforPrint" style="position: absolute;right: 0px;top:0px;font-size: 12px;"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
+                        <a href="javascript:void(0);" ng-click="vm.addCustomerName($index)" title="Add/Edit Customer Name" class="notforPrint" style="position: absolute;right: 0px;top:0px;font-size: 12px;"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
                         <input class="notforPrint" title="Order Served" type="checkbox" ng-model="order.isServed" ng-change="vm.onOrderServedChange(order)" style="position: absolute; left: 4px;top: 18px;" />
                         <div ng-if="order.custName" style="font-size: 14px;">{{order.custName}}</div>
                         <hr style="margin: 5px 0px 15px 0px;" />
                         <div ng-repeat="item in order.order" style="text-align: left; margin-bottom: 15px;width: 65%;border-bottom: dashed 1px #ddd;" class="font12">
-                            <input class="notforPrint" title="Item Served" type="checkbox" ng-model="item.isServed" ng-change="vm.onServedChange()" /> {{item.name}} <span style="position: absolute; right: 0px;margin-right: 2px;"><a ng-click="vm.removeItem(item, $parent.$index)" href="javascript:void(0);"><i class="fa fa-minus" aria-hidden="true"></i></a> <span style="font-size: 10px;">{{item.quantity}}</span>
+                            <input class="notforPrint" title="Item Served" type="checkbox" ng-model="item.isServed" ng-change="vm.onServedChange()" /> {{item.name}} <span style="position: absolute; right: 0px;margin-right: 2px;"><a ng-click="vm.removeItem(item, $parent.$index)" href="javascript:void(0);"><i class="fa fa-minus" aria-hidden="true"></i></a> <span class="notforPrint" style="font-size: 10px;">{{item.quantity}}</span>
                             <a ng-click="vm.addItem(item, $parent.$index)" href="javascript:void(0);"><i class="fa fa-plus" aria-hidden="true"></i></a> {{item.totalPrice}}
                             </span>
                         </div>
-                        <span style="border-top: dotted 1px;margin-top: 3px;float: right;">{{vm.getTotal($index)}}</span>
+                        <span style="margin-top: 3px;float: left;">Total:</span><span style="border-top: dotted 1px;margin-top: 3px;float: right;">{{vm.getTotal($index)}}</span>
                         <br/>
                         <hr/>
                         <button type="button" title="Click here if KOT was created by mistake or it needs to be deleted anyway" class="btn btn-danger btn-sm pull-left" ng-click="vm.discardKOT($index)">Discard</button>
@@ -261,7 +268,7 @@
             }
 
             function addCustomerName(index) {
-                var custName = prompt('Please enter customer name');
+                var custName = prompt('Please enter customer name', vm.orders[index].custName);
                 if (custName) {
                     vm.orders[index].custName = custName;
                 }

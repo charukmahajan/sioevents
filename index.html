@@ -226,11 +226,11 @@
                     <div class="card-body" ng-class="{'selectedOrder': vm.currentIndex== $index}">
                         <div class="card-title" style="font-size: 16px;margin-bottom:2px;"><b>KOT<span style="font-size: 14px;"> - {{vm.getKOTToDisplay($index)}}</b></div>
                         <a href="javascript:void(0);" ng-click="vm.addCustomerName($index)" title="Add/Edit Customer Name" class="notforPrint" style="position: absolute;right: 0px;top:0px;font-size: 12px;"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
-                        <input class="notforPrint" title="Order Served" type="checkbox" ng-model="order.isServed" ng-change="vm.onOrderServedChange(order)" style="position: absolute; left: 4px;top: 18px;" />
+                        <input ng-disabled="order.isCompleted" class="notforPrint" title="Order Served" type="checkbox" ng-model="order.isServed" ng-change="vm.onOrderServedChange(order)" style="position: absolute; left: 4px;top: 18px;" />
                         <div style="font-size: 14px;"><b>{{order.custName}}</b> {{order.dateTime | date:'medium'}}</div>
                         <hr style="margin: 5px 0px 15px 0px;" />
                         <div ng-repeat="item in order.order" style="text-align: left; margin-bottom: 15px;width: 65%;border-bottom: dashed 1px #ddd;" class="font12">
-                            <input class="notforPrint" title="Item Served" type="checkbox" ng-model="item.isServed" ng-change="vm.onServedChange()" /> {{item.name}} <span style="position: absolute; right: 0px;margin-right: 2px;"><a ng-click="vm.removeItem(item, $parent.$index)" href="javascript:void(0);"><i class="fa fa-minus" aria-hidden="true"></i></a> <span class="notforPrint" style="font-size: 10px;">{{item.quantity}}</span>
+                            <input ng-disabled="order.isCompleted" class="notforPrint" title="Item Served" type="checkbox" ng-model="item.isServed" ng-change="vm.onServedChange()" /> {{item.name}} <span style="position: absolute; right: 0px;margin-right: 2px;"><a ng-click="vm.removeItem(item, $parent.$index)" href="javascript:void(0);"><i class="fa fa-minus" aria-hidden="true"></i></a> <span class="notforPrint" style="font-size: 10px;">{{item.quantity}}</span>
                             <a ng-click="vm.addItem(item, $parent.$index)" href="javascript:void(0);"><i class="fa fa-plus" aria-hidden="true"></i></a> {{item.totalPrice}}
                             </span>
                         </div>
@@ -238,7 +238,7 @@
                         <br/>
                         <hr/>
                         <button type="button" title="Click here if KOT was created by mistake or it needs to be deleted anyway" class="btn btn-danger btn-sm pull-left" ng-click="vm.discardKOT($index)">Discard</button>
-                        <button type="button" ng-if="vm.getPendingOrdersCount() > 1" title="Click here to make changes in this KOT" ng-class="{'btn-primary': vm.currentIndex== $index}" class="btn btn-sm" ng-click="vm.selectThisOrder($index)" style="align-self: center;">Selected Order</button>
+                        <button type="button" ng-if="vm.getPendingOrdersCount() > 1 && !order.isCompleted" title="Click here to make changes in this KOT" ng-class="{'btn-primary': vm.currentIndex== $index}" class="btn btn-sm" ng-click="vm.selectThisOrder($index)" style="align-self: center;">Selected Order</button>
                         <button ng-disabled="order.order.length==0" ng-if="order.isCompleted" type="button" class="btn btn-danger btn-sm pull-right" ng-click="vm.reopenKOT($index)">Reopen</button>
                         <button ng-disabled="order.order.length==0" ng-if="!order.isCompleted" type="button" class="btn btn-success btn-sm pull-right" ng-click="vm.completeKOT($index)">Complete</button>
                     </div>
@@ -372,6 +372,7 @@
                 $timeout(function() {
                     WinPrint.close();
                     $(prtContent).find('button').css('display', '');
+                    $(prtContent).find('.notforPrint').css('display', '');
                     completeOrder(index);
                 }, 200);
                 WinPrint.print();
@@ -458,6 +459,9 @@
                 if (!vm.orders[index]) {
                     vm.orders[index] = [];
                 }
+                if (vm.orders[index].isCompleted) {
+                    return;
+                }
                 var indx = _.findIndex(vm.orders[index].order, function(o, i) {
                     return o.name == data.name;
                 });
@@ -482,6 +486,9 @@
                 }
                 if (!vm.orders[index]) {
                     vm.orders[index] = [];
+                }
+                if (vm.orders[index].isCompleted) {
+                    return;
                 }
                 var item = _.find(vm.orders[index].order, function(o) {
                     return o.name == data.name;

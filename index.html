@@ -192,7 +192,7 @@
                         <br/>
                         <input type="text" tabindex="1" style="width: 90%;height: 24px;" placeholder="Type to filter" accesskey="L" ng-model="vm.filter" />
                         <p ng-repeat="data in vm.data |filter:vm.filter" style="text-align: left;" class="font14">
-                            <label style="width:85%;">
+                            <label style="width:90%;">
                                 <a ng-click="vm.addItem(data, vm.currentIndex)" href="javascript:void(0);" title="{{data.description}}" style="width: 70%;">
                                     {{$index+1}}. {{data.name}}
                                 </a>

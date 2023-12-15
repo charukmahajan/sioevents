@@ -57,6 +57,22 @@
             vertical-align: top;
         }
         
+         ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+         ::-webkit-scrollbar-button {
+            display: none;
+        }
+        
+         ::-webkit-scrollbar-track-piece {
+            background: #ccc
+        }
+        
+         ::-webkit-scrollbar-thumb {
+            background: #777
+        }
+        
         tr:nth-child(even) {
             background-color: #f2f2f2;
         }
@@ -152,7 +168,7 @@
 <body ng-controller="MainColtroller as vm">
     <div class="container-fluid text-center">
         <div class="row content">
-            <div class="col-sm-2 sidenav">
+            <div class="col-sm-3 sidenav" style="max-height: 80%; overflow-y: auto;">
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title pull-right" style="cursor: pointer;" ng-click="vm.addNewOrder()"><i class="fa fa-2x fa-plus-square" aria-hidden="true"></i></div>
@@ -160,13 +176,11 @@
                         <input type="text" style="width: 90%;height: 24px;" placeholder="Type to filter" ng-model="vm.filter" />
                         <p ng-repeat="data in vm.data |filter:vm.filter" style="text-align: left;" class="font14">
                             <a ng-click="vm.addItem(data, vm.currentIndex)" href="javascript:void(0);" title="{{data.description}}">{{$index+1}}. {{data.name}}</a>
-                            <!--<button ng-if="data.class" type="button" ng-class="data.class" class="btn btn-block btn-sm" ng-click="vm.performAction(data.action)">{{data.name}}<span ng-if="data.openCount" style="float: right;font-size: 8px;"><b>{{data.openCount}}</b></span></button>
-                            <button ng-if="!data.class" type="button" ng-class="{'btn-success': $index % 2 == 0, 'btn-outline-success': $index % 2 != 0 }" class="btn btn-block btn-sm" ng-click="vm.performAction(data.action)">{{data.name}}<span ng-if="data.openCount" style="float: right;font-size: 8px;"><b>{{data.openCount}}</b></span></button>-->
                         </p>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-2 sidenav" style="height: 60%;" ng-repeat="order in vm.orders" id="kot{{$index}}" ng-hide="order.isCompleted">
+            <div class="col-sm-3 sidenav" style="height: 80%;" ng-repeat="order in vm.orders" id="kot{{$index}}" ng-hide="order.isCompleted">
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title"><b><span ng-if="!order.custName">KOT</span><span style="font-size: 13px;float: left;">{{$index+1}}<span ng-if="order.custName">.</span></span> {{order.custName}}</b></h5>
@@ -178,8 +192,8 @@
                         <span style="border-top: dotted 1px;margin-top: 3px;float: right;">{{vm.getTotal($index)}}</span>
                         <br/>
                         <hr/>
-                        <button type="button" class="btn btn-danger btn-sm" ng-click="vm.discardKOT($index)">Discard</button>
-                        <button ng-disabled="order.order.length==0" type="button" class="btn btn-success btn-sm" ng-click="vm.completeKOT($index)">Complete</button>
+                        <button type="button" class="btn btn-danger btn-sm pull-left" ng-click="vm.discardKOT($index)">Discard</button>
+                        <button ng-disabled="order.order.length==0" type="button" class="btn btn-success btn-sm pull-right" ng-click="vm.completeKOT($index)">Complete</button>
                     </div>
                 </div>
             </div>

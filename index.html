@@ -441,7 +441,7 @@
             }
 
             function setCurrentIndex() {
-                if (vm.orders[vm.currentIndex].isCompleted) {
+                if (vm.orders.length - 1 < vm.currentIndex || vm.orders[vm.currentIndex].isCompleted) {
                     _.each(vm.orders, function(item, index) {
                         if (!item.isCompleted) {
                             vm.currentIndex = index;

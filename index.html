@@ -361,7 +361,7 @@
                 }
                 if (reloadNeeded()) {
                     sessionStorage.setItem('sioPageReloaded', 'true');
-                    location.href = location.href + '?v=' + (new Date()).getTime();
+                    location.href = location.origin + location.pathname + '?v=' + (new Date()).getTime();
                 }
                 trackOrderTime();
             }

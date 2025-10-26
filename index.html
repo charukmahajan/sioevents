@@ -29,34 +29,43 @@
     <title>SIO</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
+        integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js" integrity="sha256-/H4YS+7aYb9kJ5OKhFYPUjSJdrtV6AeyJOtTkw6X72o=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"
+        integrity="sha256-/H4YS+7aYb9kJ5OKhFYPUjSJdrtV6AeyJOtTkw6X72o=" crossorigin="anonymous"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
     <style>
         table {
             border-collapse: collapse;
             width: 100%;
         }
-        
+
         th {
             background-color: blue;
             color: white;
             font-weight: bold;
         }
-        
+
         th,
         td {
             text-align: left;
             padding: 8px;
             vertical-align: top;
         }
-        
+
         fieldset {
             border: solid 1px #999;
             border-radius: 4px;
@@ -64,130 +73,134 @@
             line-height: 3px;
             margin-right: 5px;
         }
-        
+
         fieldset label {
             font-size: 11px;
         }
-        
+
         legend {
             font-size: 14px;
             width: 70px;
             /*text-align: center;*/
         }
-        
-         ::-webkit-scrollbar {
+
+        ::-webkit-scrollbar {
             width: 4px;
         }
-        
-         ::-webkit-scrollbar-button {
+
+        ::-webkit-scrollbar-button {
             display: none;
         }
-        
-         ::-webkit-scrollbar-track-piece {
+
+        ::-webkit-scrollbar-track-piece {
             background: #ddd
         }
-        
-         ::-webkit-scrollbar-thumb {
+
+        ::-webkit-scrollbar-thumb {
             background: #444
         }
-        
+
         tr:nth-child(even) {
             background-color: #f2f2f2;
         }
+
         /* Remove the navbar's default margin-bottom and rounded borders */
-        
+
         .navbar {
             margin-bottom: 0;
             border-radius: 0;
         }
-        
+
         .onlyforPrint {
             display: none;
         }
-        
+
         .notforPrint {
             display: unset;
         }
-        
+
         .selectedOrder {
             background-color: aliceblue;
         }
-        
+
         p {
             margin-bottom: .65rem;
             /*padding: 0px 30px;*/
         }
-        
+
         .btn {
             padding: .375rem .5rem;
         }
-        
+
         .sidenav {
             padding-left: 5px;
             padding-right: 5px;
             padding-top: 10px !important;
         }
+
         /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
-        
+
         .row.content {
             height: 100vh
         }
+
         /* Set gray background color and 100% height */
-        
+
         .sidenav {
             padding-top: 20px;
             background-color: #f1f1f1;
             height: 100%;
         }
+
         /* Set black background color, white text and some padding */
-        
+
         .card-body {
             padding: 5px !important;
         }
-        
+
         footer {
             background-color: #555;
             color: white;
             padding: 15px;
         }
-        
+
         .blink {
             animation: blinker 2s linear infinite;
         }
-        
+
         @keyframes blinker {
             50% {
                 opacity: 0;
             }
         }
-        
+
         .passwordtext>input {
             color: transparent;
             background-color: transparent;
             border: none;
         }
-        
+
         .passwordtext>input:hover {
             color: inherit;
         }
-        
+
         .error {
             color: red;
             font-size: small;
         }
-        
+
         .font12 {
             font-size: 12px;
         }
-        
+
         .font13 {
             font-size: 13px;
         }
-        
+
         .font14 {
             font-size: 14px;
         }
-        
+
         .font30 {
             font-size: 30px;
         }
@@ -198,18 +211,20 @@
             float: left;
             color: blue;
         }
+
         /* On small screens, set height to 'auto' for sidenav and grid */
-        
+
         @media screen and (max-width: 767px) {
             .sidenav {
                 height: auto;
                 padding: 15px;
             }
+
             .row.content {
                 height: auto;
             }
         }
-        
+
         .settings {
             font-size: 13px;
         }
@@ -218,54 +233,67 @@
 
 <body ng-controller="MainColtroller as vm">
     <div style="margin-bottom: 14px;">
-        <a style="position: absolute; right: 2px; top: 0px; font-size: 12px;" href="javascript:void(0);" ng-click="vm.toggleSettings = !vm.toggleSettings">
+        <a style="position: absolute; right: 2px; top: 0px; font-size: 12px;" href="javascript:void(0);"
+            ng-click="vm.toggleSettings = !vm.toggleSettings">
             <i class="fa fa-cog" aria-hidden="true"></i>
         </a>
     </div>
     <div class="row settings" ng-if="vm.toggleSettings" style="height: 120px;">
         <div class="col-md-3">
-            <input type="checkbox" ng-model="vm.settings.showCompletedOrders" ng-change="vm.onSettingChange()" /> Show Completed Orders
+            <input type="checkbox" ng-model="vm.settings.showCompletedOrders" ng-change="vm.onSettingChange()" /> Show
+            Completed Orders
         </div>
         <div class="col-md-3">
-            <input type="checkbox" ng-model="vm.settings.enableKOTPrinting" ng-change="vm.onSettingChange()" /> Enable KOT Printing
+            <input type="checkbox" ng-model="vm.settings.enableKOTPrinting" ng-change="vm.onSettingChange()" /> Enable
+            KOT Printing
         </div>
         <div class="col-md-3">
-            <input type="checkbox" ng-model="vm.settings.disableAllConfirmations" ng-change="vm.onSettingChange()" title="Eg, Discard, Complete will not ask for confirmation" /> Disable All Confirmations
+            <input type="checkbox" ng-model="vm.settings.disableAllConfirmations" ng-change="vm.onSettingChange()"
+                title="Eg, Discard, Complete will not ask for confirmation" /> Disable All Confirmations
         </div>
         <div class="col-md-3">
             <fieldset style="z-index: 1;">
                 <legend>Debug info</legend>
-                <label>Open Orders: <b style="position: absolute; right: 28px;">{{vm.getPendingOrdersCount()}}</b></label>
-                <br/>
-                <label>Completed Orders: <b style="position: absolute; right: 28px;">{{vm.getCompletedOrdersCount()}}</b></label>
-                <br/>
+                <label>Open Orders: <b
+                        style="position: absolute; right: 28px;">{{vm.getPendingOrdersCount()}}</b></label>
+                <br />
+                <label>Completed Orders: <b
+                        style="position: absolute; right: 28px;">{{vm.getCompletedOrdersCount()}}</b></label>
+                <br />
                 <label>Total sales: <b style="position: absolute; right: 28px;">{{vm.getTotalSales()}}</b></label>
-                <br/>
+                <br />
                 <label>Current Index: <b style="position: absolute; right: 28px;">{{vm.currentIndex}}</b></label>
             </fieldset>
         </div>
         <div class="col-md-3">
-            <input type="number" style="width: 50px;" ng-model="vm.settings.defaultPrepTime" ng-change=" vm.onSettingChange()" title="Enter time in minutes." />Prep time of an order(in mins)
+            <input type="number" style="width: 50px;" ng-model="vm.settings.defaultPrepTime"
+                ng-change=" vm.onSettingChange()" title="Enter time in minutes." />Prep time of an order(in mins)
         </div>
         <div class="col-md-3">
-            <input type="checkbox" ng-model="vm.settings.generateKOTWithoutCustName" ng-change=" vm.onSettingChange()" /> Generate KOT without customer name
+            <input type="checkbox" ng-model="vm.settings.generateKOTWithoutCustName"
+                ng-change=" vm.onSettingChange()" /> Generate KOT without customer name
         </div>
     </div>
     <div class="container-fluid text-center">
         <div class="row content">
             <div class="col-sm-3 sidenav" style="max-height: 80%; overflow-y: auto;">
                 <div class="card">
-                    <a href="https://shakeitoff.in/" style="margin: 8px 0px 0px 8px; position: absolute; left: 38%;" target="_blank">
-                        <img src="data:image/png;base64, {{vm.logoData}}" alt="Shake It Off" style="height: 50px; width: 50px;" />
+                    <a href="https://shakeitoff.in/" style="margin: 8px 0px 0px 8px; position: absolute; left: 38%;"
+                        target="_blank">
+                        <img src="data:image/png;base64, {{vm.logoData}}" alt="Shake It Off"
+                            style="height: 50px; width: 50px;" />
                     </a>
                     <div class="card-body">
-                        <div class="card-title" style="cursor: pointer; position: absolute;top:0px;right: 0px; margin: 6px 6px 0px 0px;" title="Create new Order/KOT" ng-click="vm.addNewOrder()" accesskey="N">
+                        <div class="card-title"
+                            style="cursor: pointer; position: absolute;top:0px;right: 0px; margin: 6px 6px 0px 0px;"
+                            title="Create new Order/KOT" ng-click="vm.addNewOrder()" accesskey="N">
                             <i class="fa fa-2x fa-plus-square" aria-hidden="true"></i>
                         </div>
                         <br />
                         <br />
                         <br />
-                        <input type="text" tabindex="1" style="width: 90%;height: 24px;" placeholder="Type to filter" accesskey="L" ng-model="vm.filter" />
+                        <input type="text" tabindex="1" style="width: 90%;height: 24px;" placeholder="Type to filter"
+                            accesskey="L" ng-model="vm.filter" />
                         <p ng-repeat="data in vm.data |filter:vm.filter" style="text-align: left;" class="font14">
                             <label style="width:90%;">
                                 <a ng-click="vm.addItem(data, vm.currentIndex)" href="javascript:void(0);"
@@ -275,41 +303,68 @@
                             </label>
                             <span style="position: absolute; right: 3px;">{{data.price}}</span>
                         </p>
+
+                        <a style="float: left;" ng-if="vm.extendedData.length > 0" ng-click="vm.resetMenutoDefault()" href="javascript:void(0);"><i
+                                class="fa fa-undo" aria-hidden="true"></i></a>
+                        <a style="float: right;" ng-click="vm.addMenuItem()" href="javascript:void(0);"><i
+                                class="fa fa-plus" aria-hidden="true"></i></a>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-3 sidenav" style="height: 80%;" ng-repeat="order in vm.orders" id="kot{{$index}}" ng-hide="(order.isCompleted && !vm.settings.showCompletedOrders) || order.isDiscarded">
+            <div class="col-sm-3 sidenav" style="height: 80%;" ng-repeat="order in vm.orders" id="kot{{$index}}"
+                ng-hide="(order.isCompleted && !vm.settings.showCompletedOrders) || order.isDiscarded">
                 <div class="card">
-                    <img class="onlyforPrint" src="data:image/png;base64, {{vm.logoData}}" alt="Shake It Off" style="height: 50px; width: 50px; margin-left: 43%; margin-top: 2px;" />
+                    <img class="onlyforPrint" src="data:image/png;base64, {{vm.logoData}}" alt="Shake It Off"
+                        style="height: 50px; width: 50px; margin-left: 43%; margin-top: 2px;" />
                     <div class="card-body" ng-class="{'selectedOrder': vm.currentIndex==$index}">
-                        <a href="javascript:void(0);" ng-click="vm.addComments($index)" title="Add/Edit Comments" class="notforPrint" style="position: absolute;left: 0px;top:0px;font-size: 12px;">
+                        <a href="javascript:void(0);" ng-click="vm.addComments($index)" title="Add/Edit Comments"
+                            class="notforPrint" style="position: absolute;left: 0px;top:0px;font-size: 12px;">
                             <i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
                         <div class="card-title" style="font-size: 16px;margin-bottom:2px;"><b>KOT<span
                                     style="font-size: 14px;"> - {{vm.getKOTToDisplay($index)}}</b></div>
-                        <span class="notforPrint" ng-class="{'blink': !order.isCompleted && order.elapsedTime > vm.settings.defaultPrepTime * 60}" ng-style="order.elapsedTime < vm.settings.defaultPrepTime * 60 && {'color':'green'} || {'color': 'red'}" style="position: absolute; right: 15px; top:0px;font-size: 11px;color: green;">{{order.elapsedTimeDisplay}}</span>
-                        <a href="javascript:void(0);" ng-click="vm.addCustomerName($index)" title="Add/Edit Customer Name" class="notforPrint" style="position: absolute;right: 0px;top:0px;font-size: 12px;">
+                        <span class="notforPrint"
+                            ng-class="{'blink': !order.isCompleted && order.elapsedTime > vm.settings.defaultPrepTime * 60}"
+                            ng-style="order.elapsedTime < vm.settings.defaultPrepTime * 60 && {'color':'green'} || {'color': 'red'}"
+                            style="position: absolute; right: 15px; top:0px;font-size: 11px;color: green;">{{order.elapsedTimeDisplay}}</span>
+                        <a href="javascript:void(0);" ng-click="vm.addCustomerName($index)"
+                            title="Add/Edit Customer Name" class="notforPrint"
+                            style="position: absolute;right: 0px;top:0px;font-size: 12px;">
                             <i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
-                        <input ng-disabled="order.isCompleted" class="notforPrint" title="Order Served" type="checkbox" ng-model="order.isServed" ng-change="vm.onOrderServedChange(order)" style="position: absolute; left: 4px;top: 18px;" />
+                        <input ng-disabled="order.isCompleted" class="notforPrint" title="Order Served" type="checkbox"
+                            ng-model="order.isServed" ng-change="vm.onOrderServedChange(order)"
+                            style="position: absolute; left: 4px;top: 18px;" />
                         <div style="font-size: 14px;"><b>{{order.custName}}</b> {{order.dateTime | date:'medium'}}</div>
                         <hr style="margin: 5px 0px 15px 0px;" />
-                        <div ng-repeat="item in order.order" style="text-align: left; margin-bottom: 15px;width: 65%;border-bottom: dashed 1px #ddd;" class="font12">
-                            <input ng-disabled="order.isCompleted" class="notforPrint" title="Item Served" type="checkbox" ng-model="item.isServed" ng-change="vm.onServedChange()" /> {{item.name}} <span style="position: absolute; right: 0px;margin-right:
-                2px;"><a
-                                    ng-click="vm.removeItem(item, $parent.$index)" href="javascript:void(0);"><i
+                        <div ng-repeat="item in order.order"
+                            style="text-align: left; margin-bottom: 15px;width: 65%;border-bottom: dashed 1px #ddd;"
+                            class="font12">
+                            <input ng-disabled="order.isCompleted" class="notforPrint" title="Item Served"
+                                type="checkbox" ng-model="item.isServed" ng-change="vm.onServedChange()" />
+                            {{item.name}} <span style="position: absolute; right: 0px;margin-right:
+                2px;"><a ng-click="vm.removeItem(item, $parent.$index)" href="javascript:void(0);"><i
                                         class="fa fa-minus" aria-hidden="true"></i></a> <span class="notforPrint"
                                     style="font-size: 10px;">{{item.quantity}}</span>
-                            <a ng-click="vm.addItem(item, $parent.$index)" href="javascript:void(0);"><i
+                                <a ng-click="vm.addItem(item, $parent.$index)" href="javascript:void(0);"><i
                                         class="fa fa-plus" aria-hidden="true"></i></a> {{item.totalPrice}}
                             </span>
                         </div>
-                        <span style="margin-top: 3px;float: left;">Total:</span><span style="border-top: dotted 1px;margin-top: 3px;float: right;">{{vm.getTotal($index)}}</span>
-                        <div ng-if="order.comments" class="comments"><br/>{{order.comments}}</div>
+                        <span style="margin-top: 3px;float: left;">Total:</span><span
+                            style="border-top: dotted 1px;margin-top: 3px;float: right;">{{vm.getTotal($index)}}</span>
+                        <div ng-if="order.comments" class="comments"><br />{{order.comments}}</div>
                         <br />
                         <hr />
-                        <button type="button" title="Click here if KOT was created by mistake or it needs to be deleted anyway" class="btn btn-danger btn-sm pull-left" ng-click="vm.discardKOT($index)">Discard</button>
-                        <button type="button" ng-if="vm.getPendingOrdersCount()> 1 && !order.isCompleted" title="Click here to make changes in this KOT" ng-class="{'btn-primary': vm.currentIndex== $index}" class="btn btn-sm" ng-click="vm.selectThisOrder($index)" style="align-self: center;">Selected Order</button>
-                        <button ng-disabled="order.order.length==0" ng-if="order.isCompleted" type="button" class="btn btn-danger btn-sm pull-right" ng-click="vm.reopenKOT($index)">Reopen</button>
-                        <button ng-disabled="order.order.length==0" ng-if="!order.isCompleted" type="button" class="btn btn-success btn-sm pull-right" ng-click="vm.completeKOT($index)">Complete</button>
+                        <button type="button"
+                            title="Click here if KOT was created by mistake or it needs to be deleted anyway"
+                            class="btn btn-danger btn-sm pull-left" ng-click="vm.discardKOT($index)">Discard</button>
+                        <button type="button" ng-if="vm.getPendingOrdersCount()> 1 && !order.isCompleted"
+                            title="Click here to make changes in this KOT"
+                            ng-class="{'btn-primary': vm.currentIndex== $index}" class="btn btn-sm"
+                            ng-click="vm.selectThisOrder($index)" style="align-self: center;">Selected Order</button>
+                        <button ng-disabled="order.order.length==0" ng-if="order.isCompleted" type="button"
+                            class="btn btn-danger btn-sm pull-right" ng-click="vm.reopenKOT($index)">Reopen</button>
+                        <button ng-disabled="order.order.length==0" ng-if="!order.isCompleted" type="button"
+                            class="btn btn-success btn-sm pull-right"
+                            ng-click="vm.completeKOT($index)">Complete</button>
                     </div>
                 </div>
             </div>
@@ -323,10 +378,12 @@
         function MainColtroller($scope, $timeout, $interval) {
             var vm = this,
                 backUpKey = 'sioOrdersData',
-                backUpKeySettings = 'sioEventsSettings';
+                backUpKeyData = 'sioExtraMenuItemsData'
+            backUpKeySettings = 'sioEventsSettings';
             vm.currentOrder = [];
             vm.orders = [];
             vm.currentIndex = -1;
+            vm.extendedData = [];
             vm.settings = {
                 showCompletedOrders: false,
                 enableKOTPrinting: false,
@@ -356,6 +413,8 @@
             vm.getCompletedOrdersCount = getCompletedOrdersCount;
             vm.onSettingChange = onSettingChange;
             vm.getTotalSales = getTotalSales;
+            vm.addMenuItem = addMenuItem;
+            vm.resetMenutoDefault = resetMenutoDefault;
 
             init();
 
@@ -378,9 +437,9 @@
             }
 
             function trackOrderTime() {
-                $interval(function() {
+                $interval(function () {
                     var openOrders = getPendingOrders();
-                    _.each(openOrders, function(item) {
+                    _.each(openOrders, function (item) {
                         var ticks = (new Date()).getTime() - (new Date(item.dateTime)).getTime();
                         ticks = Math.floor(ticks / 1000);
                         item.elapsedTime = ticks; // In secs
@@ -395,18 +454,46 @@
                 return totalSales;
             }
 
+            function addMenuItem() {
+                var item = prompt('Enter name and price in csv format');
+                item = item.split(',');
+                if (item.length === 2) {
+                    if (isValidNumber(item[1])) {
+                        var menuItem = {
+                            name: item[0],
+                            price: item[1]
+                        }
+                        vm.extendedData.push(menuItem);
+                        vm.data.push(menuItem);
+                        takeBackup();
+                    } else {
+                        alert('Invaid Price');
+                    }
+                } else {
+                    alert('Inalid format');
+                }
+            }
+
+            function resetMenutoDefault() {
+                var conf = confirm('Are you sure you want to reset menu. All items added by you will be removed and default items will remain');
+                if(conf) {
+                    removeDatafromLocalStorage(backUpKeyData);
+                    location.reload();
+                }
+            }
+
             function onSettingChange() {
                 saveDataInLocalStorage(vm.settings, backUpKeySettings);
             }
 
             function getPendingOrders() {
-                return _.filter(vm.orders, function(item) {
+                return _.filter(vm.orders, function (item) {
                     return !item.isCompleted && !item.isDiscarded;
                 })
             }
 
             function getCompletedOrders() {
-                return _.filter(vm.orders, function(item) {
+                return _.filter(vm.orders, function (item) {
                     return item.isCompleted && !item.isDiscarded;;
                 })
             }
@@ -440,7 +527,7 @@
             }
 
             function onOrderServedChange(order) {
-                _.each(order.order, function(item) {
+                _.each(order.order, function (item) {
                     item.isServed = order.isServed;
                 });
                 takeBackup();
@@ -482,7 +569,7 @@
                 WinPrint.document.write(prtContent.innerHTML);
                 WinPrint.document.close();
                 WinPrint.focus();
-                $timeout(function() {
+                $timeout(function () {
                     WinPrint.close();
                     $(prtContent).find('button').css('display', '');
                     $(prtContent).find('.notforPrint').css('display', '');
@@ -553,7 +640,7 @@
 
             function setCurrentIndex() {
                 if (vm.orders.length - 1 < vm.currentIndex || vm.orders[vm.currentIndex].isCompleted) {
-                    _.each(vm.orders, function(item, index) {
+                    _.each(vm.orders, function (item, index) {
                         if (!item.isCompleted) {
                             vm.currentIndex = index;
                         }
@@ -596,7 +683,7 @@
                 if (vm.orders[index].isCompleted) {
                     return;
                 }
-                var indx = _.findIndex(vm.orders[index].order, function(o, i) {
+                var indx = _.findIndex(vm.orders[index].order, function (o, i) {
                     return o.name == data.name;
                 });
                 if (vm.orders[index].order[indx].quantity > 1) {
@@ -624,7 +711,7 @@
                 if (vm.orders[index].isCompleted) {
                     return;
                 }
-                var item = _.find(vm.orders[index].order, function(o) {
+                var item = _.find(vm.orders[index].order, function (o) {
                     return o.name == data.name;
                 });
                 if (item) {
@@ -643,6 +730,9 @@
 
             function takeBackup() {
                 saveDataInLocalStorage(vm.orders, backUpKey);
+                if (vm.extendedData.length > 0) {
+                    saveDataInLocalStorage(vm.extendedData, backUpKeyData);
+                }
             }
 
             /// data is a JSON
@@ -661,6 +751,10 @@
                 }
             }
 
+            function removeDatafromLocalStorage(key) {
+                localStorage.removeItem(key);
+            }
+
             function displayTime(ticksInSecs) {
                 var ticks = ticksInSecs;
                 var hh = Math.floor(ticks / 3600);
@@ -673,6 +767,10 @@
             function pad(n, width) {
                 var n = n + '';
                 return n.length >= width ? n : new Array(width - n.length + 1).join('0') + n;
+            }
+
+            function isValidNumber(value) {
+                return !isNaN(value);
             }
 
             var data = [{
@@ -700,6 +798,11 @@
                 "description": "",
                 "price": "140"
             }];
+            var extendedData = getDataFromLocalStorage(backUpKeyData);
+            if (extendedData) {
+                vm.extendedData = extendedData;
+                data = data.concat(extendedData);
+            }
             vm.data = _.toArray(data);
         }
     </script>

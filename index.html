@@ -191,6 +191,13 @@
         .font30 {
             font-size: 30px;
         }
+
+        .comments {
+            font-size: 11px;
+            font-style: italic;
+            float: left;
+            color: blue;
+        }
         /* On small screens, set height to 'auto' for sidenav and grid */
         
         @media screen and (max-width: 767px) {
@@ -271,10 +278,12 @@
                     </div>
                 </div>
             </div>
-            <div class="col-sm-3 sidenav" style="height: 80%;" ng-repeat="order in vm.orders" id="kot{{$index}}" ng-hide="order.isCompleted && !vm.settings.showCompletedOrders">
+            <div class="col-sm-3 sidenav" style="height: 80%;" ng-repeat="order in vm.orders" id="kot{{$index}}" ng-hide="(order.isCompleted && !vm.settings.showCompletedOrders) || order.isDiscarded">
                 <div class="card">
                     <img class="onlyforPrint" src="data:image/png;base64, {{vm.logoData}}" alt="Shake It Off" style="height: 50px; width: 50px; margin-left: 43%; margin-top: 2px;" />
                     <div class="card-body" ng-class="{'selectedOrder': vm.currentIndex==$index}">
+                        <a href="javascript:void(0);" ng-click="vm.addComments($index)" title="Add/Edit Comments" class="notforPrint" style="position: absolute;left: 0px;top:0px;font-size: 12px;">
+                            <i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
                         <div class="card-title" style="font-size: 16px;margin-bottom:2px;"><b>KOT<span
                                     style="font-size: 14px;"> - {{vm.getKOTToDisplay($index)}}</b></div>
                         <span class="notforPrint" ng-class="{'blink': !order.isCompleted && order.elapsedTime > vm.settings.defaultPrepTime * 60}" ng-style="order.elapsedTime < vm.settings.defaultPrepTime * 60 && {'color':'green'} || {'color': 'red'}" style="position: absolute; right: 15px; top:0px;font-size: 11px;color: green;">{{order.elapsedTimeDisplay}}</span>
@@ -294,6 +303,7 @@
                             </span>
                         </div>
                         <span style="margin-top: 3px;float: left;">Total:</span><span style="border-top: dotted 1px;margin-top: 3px;float: right;">{{vm.getTotal($index)}}</span>
+                        <div ng-if="order.comments" class="comments"><br/>{{order.comments}}</div>
                         <br />
                         <hr />
                         <button type="button" title="Click here if KOT was created by mistake or it needs to be deleted anyway" class="btn btn-danger btn-sm pull-left" ng-click="vm.discardKOT($index)">Discard</button>
@@ -339,6 +349,7 @@
             vm.onOrderServedChange = onOrderServedChange;
             vm.selectThisOrder = selectThisOrder;
             vm.addCustomerName = addCustomerName;
+            vm.addComments = addComments;
             vm.getPendingOrders = getPendingOrders;
             vm.getPendingOrdersCount = getPendingOrdersCount;
             vm.getCompletedOrders = getCompletedOrdersCount;
@@ -390,13 +401,13 @@
 
             function getPendingOrders() {
                 return _.filter(vm.orders, function(item) {
-                    return !item.isCompleted;
+                    return !item.isCompleted && !item.isDiscarded;
                 })
             }
 
             function getCompletedOrders() {
                 return _.filter(vm.orders, function(item) {
-                    return item.isCompleted;
+                    return item.isCompleted && !item.isDiscarded;;
                 })
             }
 
@@ -412,6 +423,14 @@
                 var custName = prompt('Please enter customer name', vm.orders[index].custName);
                 if (custName) {
                     vm.orders[index].custName = custName;
+                }
+                takeBackup();
+            }
+
+            function addComments(index) {
+                var comments = prompt('Please enter comments', vm.orders[index].comments);
+                if (comments) {
+                    vm.orders[index].comments = comments;
                 }
                 takeBackup();
             }
@@ -520,12 +539,13 @@
                     conf = confirm('Are you sure you want to discard this KOT. This action can\'t be reverted.');
                 }
                 if (conf) {
-                    vm.orders.splice(index, 1);
+                    vm.orders[index].isDiscarded = true;
+                    /*vm.orders.splice(index, 1);
                     if (vm.orders.length > 0) {
                         setCurrentIndex();
                     } else {
                         vm.currentIndex = -1;
-                    }
+                    }*/
 
                     takeBackup();
                 }

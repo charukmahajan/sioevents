@@ -124,7 +124,7 @@
         }
 
         p {
-            margin-bottom: .65rem;
+            margin-bottom: .1rem;
             /*padding: 0px 30px;*/
         }
 
@@ -304,8 +304,8 @@
                             <span style="position: absolute; right: 3px;">{{data.price}}</span>
                         </p>
 
-                        <a style="float: left;" ng-if="vm.extendedData.length > 0" ng-click="vm.resetMenutoDefault()" href="javascript:void(0);"><i
-                                class="fa fa-undo" aria-hidden="true"></i></a>
+                        <a style="float: left;" ng-if="vm.extendedData.length > 0" ng-click="vm.resetMenutoDefault()"
+                            href="javascript:void(0);"><i class="fa fa-undo" aria-hidden="true"></i></a>
                         <a style="float: right;" ng-click="vm.addMenuItem()" href="javascript:void(0);"><i
                                 class="fa fa-plus" aria-hidden="true"></i></a>
                     </div>
@@ -476,7 +476,7 @@
 
             function resetMenutoDefault() {
                 var conf = confirm('Are you sure you want to reset menu. All items added by you will be removed and default items will remain');
-                if(conf) {
+                if (conf) {
                     removeDatafromLocalStorage(backUpKeyData);
                     location.reload();
                 }
@@ -774,29 +774,49 @@
             }
 
             var data = [{
-                "name": "Veg Momos Steamed (6 pieces)",
-                "description": "",
-                "price": "100"
-            }, {
-                "name": "Chocolate Milk Shake",
-                "description": "",
-                "price": "100"
-            }, {
-                "name": "Cold Coffee Milk Shake",
-                "description": "",
-                "price": "100"
-            }, {
                 "name": "Corn Cheese Sandwich",
                 "description": "",
-                "price": "120"
+                "price": "99"
             }, {
-                "name": "Cheesy Paneer Peri Peri Sandwich",
+                "name": "Bombay Cheese Sandwich",
                 "description": "",
-                "price": "130"
+                "price": "125"
             }, {
-                "name": "Veg Paneer Cheese Melt Sandwich",
+                "name": "Paneer Cheesy Peri Peri Sandwich",
                 "description": "",
-                "price": "140"
+                "price": "150"
+            }, {
+                "name": "Wheat Veg Momo Steamed (6 pieces)",
+                "description": "",
+                "price": "99"
+            }, {
+                "name": "Aloo Wheat Wrap",
+                "description": "",
+                "price": "99"
+            }, {
+                "name": "Paneer Wheat Wrap",
+                "description": "",
+                "price": "109"
+            }, {
+                "name": "Badam Milk (HOT)",
+                "description": "",
+                "price": "60"
+            }, {
+                "name": "Hot Chocolate",
+                "description": "",
+                "price": "70"
+            }, {
+                "name": "Coffee Latte (HOT)",
+                "description": "",
+                "price": "90"
+            }, {
+                "name": "Warm Vanilla Shake",
+                "description": "",
+                "price": "100"
+            }, {
+                "name": "Pet Water Bottle",
+                "description": "",
+                "price": "6"
             }];
             var extendedData = getDataFromLocalStorage(backUpKeyData);
             if (extendedData) {

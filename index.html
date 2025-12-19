@@ -212,6 +212,10 @@
             color: blue;
         }
 
+        .blue {
+            color: blue;
+        }
+
         /* On small screens, set height to 'auto' for sidenav and grid */
 
         @media screen and (max-width: 767px) {
@@ -348,8 +352,16 @@
                                         class="fa fa-plus" aria-hidden="true"></i></a> {{item.totalPrice}}
                             </span>
                         </div>
-                        <span style="margin-top: 3px;float: left;">Total:</span><span
-                            style="border-top: dotted 1px;margin-top: 3px;float: right;">{{vm.getTotal($index)}}</span>
+                        <span style="margin-top: 3px;float: left;">Total:</span><a href="javascript:void(0);"
+                            data-toggle="modal" data-target="#myModal" ng-click="vm.setOrderForDiscount($index)"
+                            title="Add/Edit Discount" class="notforPrint"
+                            style="font-size: 12px;float: left;margin-top:6px">
+                            <i class="fa fa-percent" aria-hidden="true"></i></a><span
+                            style="border-top: dotted 1px;margin-top: 3px;float: right;"><span class="blue"
+                                ng-if="order.discountType=='%'">{{order.discountValue}} {{order.discountType}} off
+                            </span><span class="blue" ng-if="order.discountType=='flat'">{{order.discountType}}
+                                {{order.discountValue}} off
+                            </span>{{vm.getTotal($index)}}</span>
                         <div ng-if="order.comments" class="comments"><br />{{order.comments}}</div>
                         <br />
                         <hr />
@@ -370,6 +382,41 @@
             </div>
         </div>
     </div>
+    <!-- The Modal -->
+    <div class="modal" id="myModal" ng-if="vm.orderIndexForDiscount > -1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header {{vm.getKOTToDisplay($index)}}-->
+                <div class="modal-header">
+                    <h4 class="modal-title">Add/Edit Discount for KOT:
+                        {{vm.getKOTToDisplay(vm.orderIndexForDiscount)}},
+                        {{vm.orders[vm.orderIndexForDiscount].custName}}</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <select ng-change="vm.onChangeDiscount()"
+                        ng-model="vm.orders[vm.orderIndexForDiscount].discountType">
+                        <option value="">---Type---</option> <!-- not selected / blank option -->
+                        <option value="%">%</option> <!-- interpolation -->
+                        <option value="flat">Value</option>
+                    </select>
+                    <input ng-change="vm.onChangeDiscount()" type="number" style="width: 70px;"
+                        ng-model="vm.orders[vm.orderIndexForDiscount].discountValue" />
+                    Total: {{vm.getTotal(vm.orderIndexForDiscount)}}
+                    <!--<button type="button" class="btn btn-success" ng-click="vm.applyDiscount()">Apply</button>-->
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
     <a id="downloadAnchorElem" style="display:none"></a>
     <script type="text/javascript">
         var mainModule = angular.module('main', []);
@@ -384,6 +431,7 @@
             vm.orders = [];
             vm.currentIndex = -1;
             vm.extendedData = [];
+            vm.orderIndexForDiscount = -1;
             vm.settings = {
                 showCompletedOrders: false,
                 enableKOTPrinting: false,
@@ -396,6 +444,9 @@
             vm.addItem = addItem;
             vm.removeItem = removeItem;
             vm.addNewOrder = addNewOrder;
+            vm.setOrderForDiscount = setOrderForDiscount;
+            vm.onChangeDiscount = onChangeDiscount;
+            vm.applyDiscount = applyDiscount;
             vm.getTotal = getTotal;
             vm.discardKOT = discardKOT;
             vm.completeKOT = completeKOT;
@@ -415,6 +466,7 @@
             vm.getTotalSales = getTotalSales;
             vm.addMenuItem = addMenuItem;
             vm.resetMenutoDefault = resetMenutoDefault;
+
 
             init();
 
@@ -650,6 +702,19 @@
 
             function getTotal(index) {
                 var total = _.chain(vm.orders[index].order).map('totalPrice').sum().value();
+                console.log(vm.orders[index].discountType);
+                switch (vm.orders[index].discountType) {
+                    case '%':
+                        if (vm.orders[index].discountValue > 0 && vm.orders[index].discountValue < 101) {
+                            total = Math.ceil(total - ((total / 100) * vm.orders[index].discountValue));
+                        }
+                        break;
+                    case 'flat':
+                        if (vm.orders[index].discountValue > 0 && vm.orders[index].discountValue < total) {
+                            total = total - vm.orders[index].discountValue;
+                        }
+                        break;
+                }
                 vm.orders[index].totalPrice = total;
                 return total;
             }
@@ -668,6 +733,19 @@
                 console.log(vm.orders)
                 vm.currentIndex = vm.orders.length - 1;
                 takeBackup();
+            }
+
+            function setOrderForDiscount(index) {
+                vm.orderIndexForDiscount = index;
+            }
+
+            function onChangeDiscount() {
+                takeBackup();
+                var order = vm.orders[vm.orderIndexForDiscount];
+                console.log(order.discountType, 'discount type');
+            }
+
+            function applyDiscount() {
             }
 
             function removeItem(data, index) {
@@ -778,41 +856,41 @@
                 "description": "",
                 "price": "99"
             }, {
-                "name": "Bombay Cheese Sandwich",
-                "description": "",
-                "price": "125"
-            }, {
-                "name": "Paneer Cheesy Peri Peri Sandwich",
+                "name": "Cheesy Paneer Peri Peri Sandwich",
                 "description": "",
                 "price": "150"
             }, {
-                "name": "Wheat Veg Momo Steamed (6 pieces)",
+                "name": "Aloo Tikki Wrap",
                 "description": "",
                 "price": "99"
             }, {
-                "name": "Aloo Wheat Wrap",
-                "description": "",
-                "price": "99"
-            }, {
-                "name": "Paneer Wheat Wrap",
+                "name": "Paneer Wrap",
                 "description": "",
                 "price": "109"
             }, {
+                "name": "Tea",
+                "description": "",
+                "price": "25"
+            }, {
+                "name": "Coffee",
+                "description": "",
+                "price": "25"
+            }, {
                 "name": "Badam Milk (HOT)",
                 "description": "",
-                "price": "60"
+                "price": "50"
             }, {
-                "name": "Hot Chocolate",
+                "name": "Samosa",
                 "description": "",
-                "price": "70"
+                "price": "40"
             }, {
-                "name": "Coffee Latte (HOT)",
+                "name": "Veg Momo",
                 "description": "",
-                "price": "90"
+                "price": "79"
             }, {
-                "name": "Warm Vanilla Shake",
+                "name": "Samosa & Tea Combo (Staff only)",
                 "description": "",
-                "price": "100"
+                "price": "40"
             }, {
                 "name": "Pet Water Bottle",
                 "description": "",

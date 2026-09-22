@@ -34,9 +34,6 @@
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
         integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-        crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
         integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
         crossorigin="anonymous"></script>
@@ -44,8 +41,6 @@
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"
-        integrity="sha256-/H4YS+7aYb9kJ5OKhFYPUjSJdrtV6AeyJOtTkw6X72o=" crossorigin="anonymous"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
     <style>
         table {
@@ -232,17 +227,165 @@
         .settings {
             font-size: 13px;
         }
+
+        /* Consolidated "to prepare" queue - sticky bar across the top of the page */
+
+        .prep-bar-wrap {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background-color: #fff;
+            border-bottom: solid 1px #e3e3e3;
+            margin-bottom: 6px;
+            min-height: 26px;
+        }
+
+        .prep-bar {
+            white-space: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            text-align: left;
+            padding: 3px 26px 3px 6px;
+            min-height: 26px;
+        }
+
+        .prep-bar::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .prep-bar::-webkit-scrollbar-thumb {
+            background: #dc3545;
+            border-radius: 3px;
+        }
+
+        .prep-bar-label {
+            background-color: #dc3545;
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: .5px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 4px;
+        }
+
+        .prep-chip {
+            display: inline-block;
+            font-size: 12px;
+            background-color: #fdeaec;
+            border: solid 1px #f5c2c7;
+            border-radius: 3px;
+            padding: 0px 6px;
+            margin-right: 4px;
+            cursor: default;
+        }
+
+        .prep-chip b {
+            color: #dc3545;
+            margin-left: 4px;
+        }
+
+        .prep-chip {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .prep-chip:hover {
+            background-color: #f8d7da;
+        }
+
+        /* Must outrank .prep-chip:hover, or the open chip washes out under the cursor. */
+
+        .prep-chip.prep-chip-open,
+        .prep-chip.prep-chip-open:hover {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: #fff;
+        }
+
+        .prep-chip-open b {
+            color: #fff;
+        }
+
+        .prep-detail {
+            position: relative;
+            border-top: dashed 1px #f5c2c7;
+            background-color: #fff8f8;
+            padding: 4px 26px 5px 6px;
+            max-height: 120px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .prep-detail-title {
+            display: block;
+            font-size: 11px;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 2px;
+        }
+
+        .prep-detail-row {
+            font-size: 12px;
+            padding: 1px 0;
+            overflow: hidden;
+            max-width: 320px;
+            border-bottom: dotted 1px #f0dcde;
+        }
+
+        .prep-detail-row:last-of-type {
+            border-bottom: none;
+        }
+
+        .prep-detail-qty {
+            float: right;
+            font-weight: bold;
+        }
+
+        .prep-detail-close {
+            position: absolute;
+            right: 6px;
+            top: 2px;
+            font-size: 16px;
+            line-height: 1;
+            color: #dc3545;
+        }
+
+        .prep-settings {
+            position: absolute;
+            right: 4px;
+            top: 4px;
+            font-size: 12px;
+        }
+
     </style>
 </head>
 
 <body ng-controller="MainColtroller as vm">
-    <div style="margin-bottom: 14px;">
-        <a style="position: absolute; right: 2px; top: 0px; font-size: 12px;" href="javascript:void(0);"
-            ng-click="vm.toggleSettings = !vm.toggleSettings">
+    <div class="prep-bar-wrap notforPrint">
+        <div class="prep-bar">
+            <span class="prep-bar-label" ng-if="vm.prep.items.length > 0">TO PREPARE</span>
+            <span class="prep-chip" ng-repeat="row in vm.prep.items track by row.name"
+                ng-class="{'prep-chip-open': vm.prepDetail === row.name}"
+                ng-click="vm.togglePrepDetail(row.name)" title="Tap for the KOT-wise split">
+                {{row.name}} <b>{{row.quantity}}</b>
+            </span>
+        </div>
+        <div class="prep-detail" ng-if="vm.getPrepDetail()">
+            <span class="prep-detail-title">{{vm.getPrepDetail().name}} &mdash; {{vm.getPrepDetail().quantity}} to
+                make</span>
+            <div class="prep-detail-row" ng-repeat="k in vm.getPrepDetail().kots track by k.kot">
+                <span class="prep-detail-qty">{{k.quantity}}</span>
+                KOT {{k.kot}}<span ng-if="k.custName"> &middot; {{k.custName}}</span>
+            </div>
+            <a class="prep-detail-close" href="javascript:void(0);" ng-click="vm.closePrepDetail()"
+                title="Close">&times;</a>
+        </div>
+        <a class="prep-settings" href="javascript:void(0);" ng-click="vm.toggleSettings = !vm.toggleSettings">
             <i class="fa fa-cog" aria-hidden="true"></i>
         </a>
     </div>
-    <div class="row settings" ng-if="vm.toggleSettings" style="height: 120px;">
+    <div class="row settings" ng-if="vm.toggleSettings" style="margin-bottom: 10px;">
         <div class="col-md-3">
             <input type="checkbox" ng-model="vm.settings.showCompletedOrders" ng-change="vm.onSettingChange()" /> Show
             Completed Orders
@@ -257,16 +400,23 @@
         </div>
         <div class="col-md-3">
             <fieldset style="z-index: 1;">
-                <legend>Debug info</legend>
-                <label>Open Orders: <b
-                        style="position: absolute; right: 28px;">{{vm.getPendingOrdersCount()}}</b></label>
+                <legend style="width: 42px;">Sales</legend>
+                <label>Revenue: <b style="position: absolute; right: 28px;">{{vm.stats.revenue}}</b></label>
                 <br />
-                <label>Completed Orders: <b
-                        style="position: absolute; right: 28px;">{{vm.getCompletedOrdersCount()}}</b></label>
+                <label>Open ({{vm.stats.openCount}}), worth: <b
+                        style="position: absolute; right: 28px;">{{vm.stats.pendingRevenue}}</b></label>
                 <br />
-                <label>Total sales: <b style="position: absolute; right: 28px;">{{vm.getTotalSales()}}</b></label>
+                <label>Completed: <b style="position: absolute; right: 28px;">{{vm.stats.completedCount}}</b></label>
                 <br />
-                <label>Current Index: <b style="position: absolute; right: 28px;">{{vm.currentIndex}}</b></label>
+                <label>Avg order: <b style="position: absolute; right: 28px;">{{vm.stats.avgOrder}}</b></label>
+                <br />
+                <label>Discount given: <b
+                        style="position: absolute; right: 28px;">{{vm.stats.discountGiven}}</b></label>
+                <br />
+                <label ng-if="vm.stats.topSeller">Top seller: <b>{{vm.stats.topSeller.name}} &times;{{vm.stats.topSeller.quantity}}</b></label>
+                <label ng-if="!vm.stats.topSeller">No completed orders yet</label>
+                <br />
+                <label><a href="javascript:void(0);" data-toggle="modal" data-target="#salesModal">Full report</a></label>
             </fieldset>
         </div>
         <div class="col-md-3">
@@ -277,6 +427,12 @@
             <input type="checkbox" ng-model="vm.settings.generateKOTWithoutCustName"
                 ng-change=" vm.onSettingChange()" /> Generate KOT without customer name
         </div>
+        <div class="col-md-3">
+            <button type="button" class="btn btn-sm btn-secondary" ng-click="vm.exportOrders()"
+                title="Download every order (open, completed and discarded) as a CSV">Export CSV</button>
+            <button type="button" class="btn btn-sm btn-danger" ng-click="vm.clearAllOrders()"
+                title="Deletes all orders and restarts KOT numbering at 0001">End event &amp; clear orders</button>
+        </div>
     </div>
     <div class="container-fluid text-center">
         <div class="row content">
@@ -284,7 +440,7 @@
                 <div class="card">
                     <a href="https://shakeitoff.in/" style="margin: 8px 0px 0px 8px; position: absolute; left: 38%;"
                         target="_blank">
-                        <img src="data:image/png;base64, {{vm.logoData}}" alt="Shake It Off"
+                        <img ng-src="data:image/png;base64,{{vm.logoData}}" alt="Shake It Off"
                             style="height: 50px; width: 50px;" />
                     </a>
                     <div class="card-body">
@@ -318,14 +474,18 @@
             <div class="col-sm-3 sidenav" style="height: 80%;" ng-repeat="order in vm.orders" id="kot{{$index}}"
                 ng-hide="(order.isCompleted && !vm.settings.showCompletedOrders) || order.isDiscarded">
                 <div class="card">
-                    <img class="onlyforPrint" src="data:image/png;base64, {{vm.logoData}}" alt="Shake It Off"
+                    <img class="onlyforPrint" ng-src="data:image/png;base64,{{vm.logoData}}" alt="Shake It Off"
                         style="height: 50px; width: 50px; margin-left: 43%; margin-top: 2px;" />
                     <div class="card-body" ng-class="{'selectedOrder': vm.currentIndex==$index}">
                         <a href="javascript:void(0);" ng-click="vm.addComments($index)" title="Add/Edit Comments"
                             class="notforPrint" style="position: absolute;left: 0px;top:0px;font-size: 12px;">
                             <i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
+                        <a href="javascript:void(0);" ng-click="vm.printKOT($index)"
+                            title="Print this KOT now (does not complete the order)" class="notforPrint"
+                            style="position: absolute;left: 18px;top:0px;font-size: 12px;">
+                            <i class="fa fa-print" aria-hidden="true"></i></a>
                         <div class="card-title" style="font-size: 16px;margin-bottom:2px;"><b>KOT<span
-                                    style="font-size: 14px;"> - {{vm.getKOTToDisplay($index)}}</b></div>
+                                    style="font-size: 14px;"> - {{vm.getKOTToDisplay($index)}}</span></b></div>
                         <span class="notforPrint"
                             ng-class="{'blink': !order.isCompleted && order.elapsedTime > vm.settings.defaultPrepTime * 60}"
                             ng-style="order.elapsedTime < vm.settings.defaultPrepTime * 60 && {'color':'green'} || {'color': 'red'}"
@@ -358,8 +518,9 @@
                             style="font-size: 12px;float: left;margin-top:6px">
                             <i class="fa fa-percent" aria-hidden="true"></i></a><span
                             style="border-top: dotted 1px;margin-top: 3px;float: right;"><span class="blue"
-                                ng-if="order.discountType=='%'">{{order.discountValue}} {{order.discountType}} off
-                            </span><span class="blue" ng-if="order.discountType=='flat'">{{order.discountType}}
+                                ng-if="vm.isDiscountApplied($index) && order.discountType=='%'">{{order.discountValue}} % off
+                            </span><span class="blue"
+                                ng-if="vm.isDiscountApplied($index) && order.discountType=='flat'">flat
                                 {{order.discountValue}} off
                             </span>{{vm.getTotal($index)}}</span>
                         <div ng-if="order.comments" class="comments"><br />{{order.comments}}</div>
@@ -406,7 +567,8 @@
                     <input ng-change="vm.onChangeDiscount()" type="number" style="width: 70px;"
                         ng-model="vm.orders[vm.orderIndexForDiscount].discountValue" />
                     Total: {{vm.getTotal(vm.orderIndexForDiscount)}}
-                    <!--<button type="button" class="btn btn-success" ng-click="vm.applyDiscount()">Apply</button>-->
+                    <div class="error" ng-if="vm.getDiscountError(vm.orderIndexForDiscount)">
+                        {{vm.getDiscountError(vm.orderIndexForDiscount)}}</div>
                 </div>
 
                 <!-- Modal footer -->
@@ -414,6 +576,96 @@
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
                 </div>
 
+            </div>
+        </div>
+    </div>
+    <!-- Sales report -->
+    <div class="modal" id="salesModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Sales report</h4>
+                    <button type="button" class="close notforPrint" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body font13" id="salesReportBody" style="text-align: left;">
+                    <div style="font-size: 11px; color: #666; margin-bottom: 8px;">{{vm.stats.generatedOn}}</div>
+                    <table>
+                        <tr>
+                            <th colspan="2">Summary</th>
+                        </tr>
+                        <tr>
+                            <td>Revenue (completed orders)</td>
+                            <td style="text-align: right;"><b>{{vm.stats.revenue}}</b></td>
+                        </tr>
+                        <tr>
+                            <td>Cash expected in the tin</td>
+                            <td style="text-align: right;"><b>{{vm.stats.revenue}}</b></td>
+                        </tr>
+                        <tr>
+                            <td>Still open ({{vm.stats.openCount}} order/s), worth</td>
+                            <td style="text-align: right;">{{vm.stats.pendingRevenue}}</td>
+                        </tr>
+                        <tr>
+                            <td>Orders completed</td>
+                            <td style="text-align: right;">{{vm.stats.completedCount}}</td>
+                        </tr>
+                        <tr>
+                            <td>Orders discarded</td>
+                            <td style="text-align: right;">{{vm.stats.discardedCount}}</td>
+                        </tr>
+                        <tr>
+                            <td>Average order value</td>
+                            <td style="text-align: right;">{{vm.stats.avgOrder}}</td>
+                        </tr>
+                        <tr>
+                            <td>Discount given away</td>
+                            <td style="text-align: right;">{{vm.stats.discountGiven}}</td>
+                        </tr>
+                        <tr>
+                            <td>Items sold</td>
+                            <td style="text-align: right;">{{vm.stats.totalItems}}</td>
+                        </tr>
+                    </table>
+                    <br />
+                    <table>
+                        <tr>
+                            <th>Item</th>
+                            <th style="text-align: right;">Qty</th>
+                            <th style="text-align: right;">Value</th>
+                        </tr>
+                        <tr ng-repeat="item in vm.stats.itemsSold track by item.name">
+                            <td>{{item.name}}</td>
+                            <td style="text-align: right;">{{item.quantity}}</td>
+                            <td style="text-align: right;">{{item.revenue}}</td>
+                        </tr>
+                        <tr ng-if="vm.stats.itemsSold.length === 0">
+                            <td colspan="3">Nothing sold yet.</td>
+                        </tr>
+                    </table>
+                    <div style="font-size: 11px; color: #666; margin-top: 4px;">Item values are before order-level
+                        discounts, so they add up to more than revenue whenever a discount was given.</div>
+                    <br />
+                    <table>
+                        <tr>
+                            <th>Hour</th>
+                            <th style="text-align: right;">Orders</th>
+                            <th style="text-align: right;">Revenue</th>
+                        </tr>
+                        <tr ng-repeat="slot in vm.stats.byHour track by slot.key">
+                            <td>{{slot.label}}</td>
+                            <td style="text-align: right;">{{slot.orders}}</td>
+                            <td style="text-align: right;">{{slot.revenue}}</td>
+                        </tr>
+                        <tr ng-if="vm.stats.byHour.length === 0">
+                            <td colspan="3">Nothing sold yet.</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer notforPrint">
+                    <button type="button" class="btn btn-secondary btn-sm" ng-click="vm.printSalesReport()">Print</button>
+                    <button type="button" class="btn btn-secondary btn-sm" ng-click="vm.exportOrders()">Export CSV</button>
+                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -432,6 +684,9 @@
             vm.currentIndex = -1;
             vm.extendedData = [];
             vm.orderIndexForDiscount = -1;
+            vm.stats = emptyStats();
+            vm.prep = emptyPrep();
+            vm.prepDetail = null;
             vm.settings = {
                 showCompletedOrders: false,
                 enableKOTPrinting: false,
@@ -460,12 +715,20 @@
             vm.addComments = addComments;
             vm.getPendingOrders = getPendingOrders;
             vm.getPendingOrdersCount = getPendingOrdersCount;
-            vm.getCompletedOrders = getCompletedOrdersCount;
+            vm.getCompletedOrders = getCompletedOrders;
             vm.getCompletedOrdersCount = getCompletedOrdersCount;
             vm.onSettingChange = onSettingChange;
             vm.getTotalSales = getTotalSales;
             vm.addMenuItem = addMenuItem;
             vm.resetMenutoDefault = resetMenutoDefault;
+            vm.clearAllOrders = clearAllOrders;
+            vm.exportOrders = exportOrders;
+            vm.isDiscountApplied = isDiscountApplied;
+            vm.getDiscountError = getDiscountError;
+            vm.printSalesReport = printSalesReport;
+            vm.togglePrepDetail = togglePrepDetail;
+            vm.getPrepDetail = getPrepDetail;
+            vm.closePrepDetail = closePrepDetail;
 
 
             init();
@@ -485,6 +748,7 @@
                     sessionStorage.setItem('sioPageReloaded', 'true');
                     location.href = location.origin + location.pathname + '?v=' + (new Date()).getTime();
                 }
+                recalculateStats();
                 trackOrderTime();
             }
 
@@ -500,30 +764,287 @@
                 }, 1 * 1000);
             }
 
+            function emptyPrep() {
+                return {
+                    items: [],
+                    totalCount: 0
+                };
+            }
+
+            /// Every still-unserved item across every open KOT, rolled up by name and ordered by how
+            /// many are needed. An item line drops off the list the moment it is ticked served.
+            function recalculatePrepQueue() {
+                var prep = emptyPrep();
+                var itemMap = {};
+                _.each(vm.orders, function (order, index) {
+                    if (order.isCompleted || order.isDiscarded) {
+                        return;
+                    }
+                    _.each(order.order, function (item) {
+                        if (item.isServed) {
+                            return;
+                        }
+                        var entry = itemMap[item.name];
+                        if (!entry) {
+                            entry = itemMap[item.name] = { name: item.name, quantity: 0, kots: [] };
+                        }
+                        entry.quantity += item.quantity;
+                        entry.kots.push({
+                            kot: getKOTToDisplay(index),
+                            custName: order.custName || '',
+                            quantity: item.quantity
+                        });
+                        prep.totalCount += item.quantity;
+                    });
+                });
+                prep.items = _.orderBy(_.values(itemMap), ['quantity', 'name'], ['desc', 'asc']);
+                // An expanded item that has just been fully served should not leave a stale panel open.
+                if (vm.prepDetail && !itemMap[vm.prepDetail]) {
+                    vm.prepDetail = null;
+                }
+                vm.prep = prep;
+            }
+
+            function togglePrepDetail(name) {
+                vm.prepDetail = vm.prepDetail === name ? null : name;
+            }
+
+            function closePrepDetail() {
+                vm.prepDetail = null;
+            }
+
+            function getPrepDetail() {
+                if (!vm.prepDetail) {
+                    return null;
+                }
+                return _.find(vm.prep.items, function (row) {
+                    return row.name === vm.prepDetail;
+                });
+            }
+
+            function emptyStats() {
+                return {
+                    revenue: 0,
+                    pendingRevenue: 0,
+                    completedCount: 0,
+                    openCount: 0,
+                    discardedCount: 0,
+                    discountGiven: 0,
+                    avgOrder: 0,
+                    totalItems: 0,
+                    itemsSold: [],
+                    byHour: [],
+                    topSeller: null,
+                    generatedOn: ''
+                };
+            }
+
+            /// Recomputed on every change rather than on every digest - the report can be several
+            /// hundred orders deep by the end of an event.
+            function recalculateStats() {
+                var stats = emptyStats();
+                var itemMap = {};
+                var hourMap = {};
+                _.each(vm.orders, function (order, index) {
+                    if (order.isDiscarded) {
+                        stats.discardedCount++;
+                        return;
+                    }
+                    var total = getTotal(index);
+                    if (!order.isCompleted) {
+                        stats.openCount++;
+                        stats.pendingRevenue += total;
+                        return;
+                    }
+                    stats.completedCount++;
+                    stats.revenue += total;
+                    stats.discountGiven += getGrossTotal(index) - total;
+                    _.each(order.order, function (item) {
+                        var entry = itemMap[item.name];
+                        if (!entry) {
+                            entry = itemMap[item.name] = { name: item.name, quantity: 0, revenue: 0 };
+                        }
+                        entry.quantity += item.quantity;
+                        entry.revenue += item.totalPrice;
+                        stats.totalItems += item.quantity;
+                    });
+                    var when = new Date(order.completedOn || order.dateTime);
+                    if (!isNaN(when.getTime())) {
+                        var key = when.getFullYear() + '-' + pad(when.getMonth() + 1, 2) + '-' +
+                            pad(when.getDate(), 2) + ' ' + pad(when.getHours(), 2);
+                        var slot = hourMap[key];
+                        if (!slot) {
+                            slot = hourMap[key] = { key: key, label: hourLabel(when), orders: 0, revenue: 0 };
+                        }
+                        slot.orders++;
+                        slot.revenue += total;
+                    }
+                });
+                stats.avgOrder = stats.completedCount ? Math.round(stats.revenue / stats.completedCount) : 0;
+                stats.itemsSold = _.orderBy(_.values(itemMap), ['quantity', 'revenue'], ['desc', 'desc']);
+                stats.byHour = _.sortBy(_.values(hourMap), 'key');
+                stats.topSeller = stats.itemsSold.length ? stats.itemsSold[0] : null;
+                stats.generatedOn = 'Generated ' + formatDateForExport(new Date());
+                vm.stats = stats;
+                recalculatePrepQueue();
+            }
+
+            function hourLabel(date) {
+                var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return date.getDate() + ' ' + months[date.getMonth()] + ', ' + pad(date.getHours(), 2) +
+                    ':00 - ' + pad((date.getHours() + 1) % 24, 2) + ':00';
+            }
+
+            function printSalesReport() {
+                var body = document.getElementById('salesReportBody');
+                if (!body) {
+                    return;
+                }
+                var WinPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+                if (!WinPrint) {
+                    alert('Please allow popups to print the report.');
+                    return;
+                }
+                WinPrint.document.write(buildPrintDocument('<h3>Sales report</h3>' + body.innerHTML));
+                WinPrint.document.close();
+                WinPrint.focus();
+                WinPrint.print();
+                WinPrint.close();
+            }
+
             function getTotalSales() {
-                var completedOrders = getCompletedOrders();
-                var totalSales = _.chain(completedOrders).map('totalPrice').sum().value();
+                var totalSales = 0;
+                _.each(vm.orders, function (order, index) {
+                    if (order.isCompleted && !order.isDiscarded) {
+                        totalSales += getTotal(index);
+                    }
+                });
                 return totalSales;
             }
 
             function addMenuItem() {
-                var item = prompt('Enter name and price in csv format');
-                item = item.split(',');
-                if (item.length === 2) {
-                    if (isValidNumber(item[1])) {
-                        var menuItem = {
-                            name: item[0],
-                            price: item[1]
-                        }
-                        vm.extendedData.push(menuItem);
-                        vm.data.push(menuItem);
-                        takeBackup();
-                    } else {
-                        alert('Invaid Price');
-                    }
-                } else {
-                    alert('Inalid format');
+                var input = prompt('Enter name and price in csv format, eg: Masala Chai,30');
+                if (input === null) {
+                    return; // cancelled
                 }
+                var parts = input.split(',');
+                if (parts.length !== 2) {
+                    alert('Invalid format. Enter the name and price separated by a comma, eg: Masala Chai,30');
+                    return;
+                }
+                var name = parts[0].trim();
+                var price = parts[1].trim();
+                if (!name) {
+                    alert('Please enter an item name.');
+                    return;
+                }
+                if (!isValidNumber(price) || parseFloat(price) <= 0) {
+                    alert('Invalid price. Enter a number greater than 0.');
+                    return;
+                }
+                var duplicate = _.find(vm.data, function (o) {
+                    return o.name.toLowerCase() === name.toLowerCase();
+                });
+                if (duplicate) {
+                    alert('"' + duplicate.name + '" is already on the menu.');
+                    return;
+                }
+                var menuItem = {
+                    name: name,
+                    description: '',
+                    price: price
+                };
+                vm.extendedData.push(menuItem);
+                vm.data.push(menuItem);
+                takeBackup();
+            }
+
+            function clearAllOrders() {
+                if (vm.orders.length === 0) {
+                    alert('There are no orders to clear.');
+                    return;
+                }
+                // Always confirm, even when "Disable All Confirmations" is on - this cannot be undone.
+                var summary = vm.orders.length + ' order(s): ' + getPendingOrdersCount() + ' open, ' +
+                    getCompletedOrdersCount() + ' completed, total sales ' + getTotalSales() + '.';
+                if (!confirm('Clear ' + summary + '\n\nA CSV backup will be downloaded first. ' +
+                    'This cannot be undone and KOT numbering restarts at 0001.')) {
+                    return;
+                }
+                exportOrders();
+                vm.orders = [];
+                vm.currentIndex = -1;
+                vm.orderIndexForDiscount = -1;
+                removeDatafromLocalStorage(backUpKey);
+                recalculateStats();
+            }
+
+            function exportOrders() {
+                if (vm.orders.length === 0) {
+                    alert('There are no orders to export.');
+                    return;
+                }
+                var rows = [['KOT', 'Customer', 'Date/Time', 'Completed On', 'Status', 'Item', 'Qty',
+                    'Unit Price', 'Line Total', 'Discount', 'Order Total', 'Comments']];
+                _.each(vm.orders, function (order, index) {
+                    var status = order.isDiscarded ? 'Discarded' : (order.isCompleted ? 'Completed' : 'Open');
+                    var discount = '';
+                    if (isDiscountApplied(index)) {
+                        discount = order.discountType === '%' ? order.discountValue + '%' :
+                            'flat ' + order.discountValue;
+                    }
+                    var head = [getKOTToDisplay(index), order.custName || '', formatDateForExport(order.dateTime),
+                        formatDateForExport(order.completedOn), status];
+                    var tail = [discount, getTotal(index), order.comments || ''];
+                    if (!order.order || order.order.length === 0) {
+                        rows.push(head.concat(['', '', '', ''], tail));
+                        return;
+                    }
+                    _.each(order.order, function (item) {
+                        rows.push(head.concat([item.name, item.quantity, item.price, item.totalPrice], tail));
+                    });
+                });
+                downloadCsv(rows, 'sio-orders-' + formatDateForFileName(new Date()) + '.csv');
+            }
+
+            function downloadCsv(rows, fileName) {
+                var csv = _.map(rows, function (row) {
+                    return _.map(row, toCsvCell).join(',');
+                }).join('\r\n');
+                var anchor = document.getElementById('downloadAnchorElem');
+                // BOM so Excel opens UTF-8 correctly
+                var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+                var url = URL.createObjectURL(blob);
+                anchor.setAttribute('href', url);
+                anchor.setAttribute('download', fileName);
+                anchor.click();
+                $timeout(function () {
+                    URL.revokeObjectURL(url);
+                }, 2000);
+            }
+
+            function toCsvCell(value) {
+                if (value === null || value === undefined) {
+                    return '""';
+                }
+                return '"' + value.toString().replace(/"/g, '""') + '"';
+            }
+
+            function formatDateForExport(value) {
+                if (!value) {
+                    return '';
+                }
+                var date = new Date(value);
+                if (isNaN(date.getTime())) {
+                    return '';
+                }
+                return date.getFullYear() + '-' + pad(date.getMonth() + 1, 2) + '-' + pad(date.getDate(), 2) +
+                    ' ' + pad(date.getHours(), 2) + ':' + pad(date.getMinutes(), 2) + ':' + pad(date.getSeconds(), 2);
+            }
+
+            function formatDateForFileName(date) {
+                return date.getFullYear() + pad(date.getMonth() + 1, 2) + pad(date.getDate(), 2) + '-' +
+                    pad(date.getHours(), 2) + pad(date.getMinutes(), 2);
             }
 
             function resetMenutoDefault() {
@@ -590,15 +1111,7 @@
             }
 
             function getKOTToDisplay(index) {
-                index++;
-                return generateDisplayToken(index.toString());
-            }
-
-            function generateDisplayToken(token) {
-                if (token.length < 4) {
-                    return generateDisplayToken('0' + token);
-                }
-                return token;
+                return (index + 1).toString();
             }
 
             function reloadNeeded() {
@@ -611,23 +1124,46 @@
 
             function printKOT(index) {
                 var prtContent = document.getElementById('kot' + index);
+                if (!prtContent) {
+                    return;
+                }
                 var WinPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
                 if (!WinPrint) {
-                    alert('Please allow popups.');
+                    alert('Please allow popups to print the KOT.');
                     return;
                 }
                 $(prtContent).find('button').css('display', 'none');
                 $(prtContent).find('.notforPrint').css('display', 'none');
-                WinPrint.document.write(prtContent.innerHTML);
+                var markup = prtContent.innerHTML;
+                // Restore the on-screen card immediately - it is already captured in `markup`.
+                $(prtContent).find('button').css('display', '');
+                $(prtContent).find('.notforPrint').css('display', '');
+                WinPrint.document.write(buildPrintDocument(markup));
                 WinPrint.document.close();
                 WinPrint.focus();
-                $timeout(function () {
-                    WinPrint.close();
-                    $(prtContent).find('button').css('display', '');
-                    $(prtContent).find('.notforPrint').css('display', '');
-                    completeOrder(index);
-                }, 200);
                 WinPrint.print();
+                WinPrint.close();
+                // NOTE: completing the order is the caller's job (completeKOT) - doing it here too
+                // ran completeOrder twice.
+            }
+
+            function buildPrintDocument(bodyMarkup) {
+                var styles = '<style>' +
+                    'body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 8px; }' +
+                    'hr { margin: 5px 0; border: 0; border-top: 1px solid #000; }' +
+                    'table { border-collapse: collapse; width: 100%; margin-bottom: 8px; }' +
+                    'th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #ccc; }' +
+                    'th { background: #eee; font-weight: bold; }' +
+                    'img { height: 50px; width: 50px; }' +
+                    '.onlyforPrint { display: block; }' +
+                    '.notforPrint, button { display: none !important; }' +
+                    '.card-title { font-size: 16px; margin-bottom: 4px; }' +
+                    '.comments { font-size: 11px; font-style: italic; color: #000; }' +
+                    '.font12 { font-size: 12px; }' +
+                    '.blue { color: #000; }' +
+                    '</style>';
+                return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>KOT</title>' + styles +
+                    '</head><body>' + bodyMarkup + '</body></html>';
             }
 
             function reopenKOT(index) {
@@ -679,43 +1215,74 @@
                 }
                 if (conf) {
                     vm.orders[index].isDiscarded = true;
-                    /*vm.orders.splice(index, 1);
-                    if (vm.orders.length > 0) {
-                        setCurrentIndex();
-                    } else {
-                        vm.currentIndex = -1;
-                    }*/
-
+                    // Without this the discarded (and now hidden) KOT stays selected and silently
+                    // collects any items added afterwards.
+                    setCurrentIndex();
                     takeBackup();
                 }
             }
 
             function setCurrentIndex() {
-                if (vm.orders.length - 1 < vm.currentIndex || vm.orders[vm.currentIndex].isCompleted) {
-                    _.each(vm.orders, function (item, index) {
-                        if (!item.isCompleted) {
-                            vm.currentIndex = index;
-                        }
-                    });
+                var current = vm.orders[vm.currentIndex];
+                if (current && !current.isCompleted && !current.isDiscarded) {
+                    return;
                 }
+                // -1 when nothing is open, so addItem() can tell the user instead of failing silently.
+                vm.currentIndex = _.findLastIndex(vm.orders, function (item) {
+                    return !item.isCompleted && !item.isDiscarded;
+                });
+            }
+
+            function getGrossTotal(index) {
+                var order = vm.orders[index];
+                if (!order || !order.order) {
+                    return 0;
+                }
+                return _.chain(order.order).map('totalPrice').sum().value();
+            }
+
+            function isDiscountApplied(index) {
+                return getDiscountError(index) === '' && !!(vm.orders[index] || {}).discountType &&
+                    parseFloat((vm.orders[index] || {}).discountValue) > 0;
+            }
+
+            function getDiscountError(index) {
+                var order = vm.orders[index];
+                if (!order || !order.discountType) {
+                    return '';
+                }
+                if (order.discountValue === undefined || order.discountValue === null || order.discountValue === '') {
+                    return '';
+                }
+                var value = parseFloat(order.discountValue);
+                if (!(value > 0)) {
+                    return 'Discount must be more than 0. It has not been applied.';
+                }
+                if (order.discountType === '%' && value > 100) {
+                    return 'A percentage discount cannot be more than 100. It has not been applied.';
+                }
+                if (order.discountType === 'flat' && value > getGrossTotal(index)) {
+                    return 'A flat discount cannot be more than the order total (' + getGrossTotal(index) +
+                        '). It has not been applied.';
+                }
+                return '';
             }
 
             function getTotal(index) {
-                var total = _.chain(vm.orders[index].order).map('totalPrice').sum().value();
-                console.log(vm.orders[index].discountType);
-                switch (vm.orders[index].discountType) {
-                    case '%':
-                        if (vm.orders[index].discountValue > 0 && vm.orders[index].discountValue < 101) {
-                            total = Math.ceil(total - ((total / 100) * vm.orders[index].discountValue));
-                        }
-                        break;
-                    case 'flat':
-                        if (vm.orders[index].discountValue > 0 && vm.orders[index].discountValue < total) {
-                            total = total - vm.orders[index].discountValue;
-                        }
-                        break;
+                var order = vm.orders[index];
+                if (!order) {
+                    return 0;
                 }
-                vm.orders[index].totalPrice = total;
+                var total = getGrossTotal(index);
+                if (isDiscountApplied(index)) {
+                    var value = parseFloat(order.discountValue);
+                    if (order.discountType === '%') {
+                        total = Math.ceil(total - ((total / 100) * value));
+                    } else {
+                        total = total - value;
+                    }
+                }
+                order.totalPrice = total;
                 return total;
             }
 
@@ -730,7 +1297,6 @@
                     'dateTime': date,
                     order: []
                 });
-                console.log(vm.orders)
                 vm.currentIndex = vm.orders.length - 1;
                 takeBackup();
             }
@@ -741,62 +1307,44 @@
 
             function onChangeDiscount() {
                 takeBackup();
-                var order = vm.orders[vm.orderIndexForDiscount];
-                console.log(order.discountType, 'discount type');
             }
 
             function applyDiscount() {
             }
 
             function removeItem(data, index) {
-                if (index < 0) {
+                var order = getEditableOrder(index);
+                if (!order) {
                     return;
                 }
-                if (!index) {
-                    index = 0;
-                }
-                if (!vm.orders[index]) {
-                    vm.orders[index] = [];
-                }
-                if (vm.orders[index].isCompleted) {
-                    return;
-                }
-                var indx = _.findIndex(vm.orders[index].order, function (o, i) {
+                var indx = _.findIndex(order.order, function (o) {
                     return o.name == data.name;
                 });
-                if (vm.orders[index].order[indx].quantity > 1) {
-                    vm.orders[index].order[indx].quantity--;
-                    vm.orders[index].order[indx].totalPrice = vm.orders[index].order[indx].quantity * vm.orders[index].order[indx].price;
+                if (indx < 0) {
+                    return;
+                }
+                if (order.order[indx].quantity > 1) {
+                    order.order[indx].quantity--;
+                    order.order[indx].totalPrice = order.order[indx].quantity * order.order[indx].price;
                 } else {
-                    vm.orders[index].order.splice(indx, 1);
-                    if (vm.orders.length === 0) {
-                        vm.orders.push([]);
-                    }
+                    order.order.splice(indx, 1);
                 }
                 takeBackup();
             }
 
             function addItem(data, index) {
-                if (index < 0) {
+                var order = getEditableOrder(index, true);
+                if (!order) {
                     return;
                 }
-                if (!index) {
-                    index = 0;
-                }
-                if (!vm.orders[index]) {
-                    vm.orders[index] = [];
-                }
-                if (vm.orders[index].isCompleted) {
-                    return;
-                }
-                var item = _.find(vm.orders[index].order, function (o) {
+                var item = _.find(order.order, function (o) {
                     return o.name == data.name;
                 });
                 if (item) {
                     item.quantity++;
                     item.totalPrice = item.quantity * item.price;
                 } else {
-                    vm.orders[index].order.push({
+                    order.order.push({
                         name: data.name,
                         quantity: 1,
                         price: parseInt(data.price),
@@ -806,7 +1354,24 @@
                 takeBackup();
             }
 
+            /// Returns the order at `index` only if it can still be edited, otherwise undefined.
+            /// Completed and discarded KOTs are hidden or locked, so writing to them loses the item.
+            function getEditableOrder(index, warn) {
+                var order = (index === undefined || index === null || index < 0) ? undefined : vm.orders[index];
+                if (!order || order.isCompleted || order.isDiscarded) {
+                    if (warn) {
+                        alert('No open KOT is selected. Create a new order (+) or select one first.');
+                    }
+                    return undefined;
+                }
+                if (!order.order) {
+                    order.order = [];
+                }
+                return order;
+            }
+
             function takeBackup() {
+                recalculateStats();
                 saveDataInLocalStorage(vm.orders, backUpKey);
                 if (vm.extendedData.length > 0) {
                     saveDataInLocalStorage(vm.extendedData, backUpKeyData);
@@ -848,25 +1413,33 @@
             }
 
             function isValidNumber(value) {
-                return !isNaN(value);
+                return value !== '' && value !== null && value !== undefined && !isNaN(value);
             }
 
-            var data = [{
-                "name": "Corn Cheese Sandwich",
+            var data = [ {
+                "name": "Paneer Roll",
+                "description": "",
+                "price": "149"
+            }, {
+                "name": "Potato Wrap",
+                "description": "",
+                "price": "129"
+            }, {
+                "name": "Bombay Cheese Sandwich",
                 "description": "",
                 "price": "99"
-            }, {
-                "name": "Cheesy Paneer Peri Peri Sandwich",
+            },{
+                "name": "Veg Club Sandwich",
                 "description": "",
-                "price": "150"
+                "price": "89"
             }, {
-                "name": "Aloo Tikki Wrap",
+                "name": "Samosa",
                 "description": "",
-                "price": "99"
+                "price": "40"
             }, {
-                "name": "Paneer Wrap",
+                "name": "Veg Puff",
                 "description": "",
-                "price": "109"
+                "price": "50"
             }, {
                 "name": "Tea",
                 "description": "",
@@ -876,29 +1449,17 @@
                 "description": "",
                 "price": "25"
             }, {
-                "name": "Badam Milk (HOT)",
+                "name": "Frooti",
                 "description": "",
-                "price": "50"
+                "price": "10"
             }, {
-                "name": "Samosa",
+                "name": "Mixed Fruit Juice",
                 "description": "",
-                "price": "40"
-            }, {
-                "name": "Veg Momo",
-                "description": "",
-                "price": "79"
-            }, {
-                "name": "Samosa & Tea Combo (Staff only)",
-                "description": "",
-                "price": "40"
+                "price": "20"
             }, {
                 "name": "Pet Water Bottle",
                 "description": "",
-                "price": "6"
-            }, {
-                "name": "Kit Kat",
-                "description": "",
-                "price": "35"
+                "price": "10"
             }];
             var extendedData = getDataFromLocalStorage(backUpKeyData);
             if (extendedData) {

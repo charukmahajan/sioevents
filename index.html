@@ -342,6 +342,39 @@
             font-weight: bold;
         }
 
+        .stock-badge {
+            font-size: 10px;
+            color: #2e7d32;
+            background-color: #e8f5e9;
+            border: solid 1px #c8e6c9;
+            border-radius: 3px;
+            padding: 0px 4px;
+            margin-left: 4px;
+            white-space: nowrap;
+        }
+
+        .stock-badge.stock-low {
+            color: #b26a00;
+            background-color: #fff4e5;
+            border-color: #ffe0b2;
+        }
+
+        .stock-badge.stock-out {
+            color: #fff;
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .stock-oversold {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .stock-untracked {
+            color: #999;
+            font-style: italic;
+        }
+
         .prep-detail-close {
             position: absolute;
             right: 6px;
@@ -428,6 +461,8 @@
                 ng-change=" vm.onSettingChange()" /> Generate KOT without customer name
         </div>
         <div class="col-md-3">
+            <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#stockModal"
+                title="Set opening stock and restock items mid-event">Stock</button>
             <button type="button" class="btn btn-sm btn-secondary" ng-click="vm.exportOrders()"
                 title="Download every order (open, completed and discarded) as a CSV">Export CSV</button>
             <button type="button" class="btn btn-sm btn-danger" ng-click="vm.clearAllOrders()"
@@ -460,6 +495,12 @@
                                     title="{{data.description}}" style="width: 70%;">
                                     {{$index+1}}. {{data.name}}
                                 </a>
+                                <span class="stock-badge" ng-if="vm.stockView[data.name]"
+                                    ng-class="{'stock-out': vm.stockView[data.name].remaining <= 0,
+                                               'stock-low': vm.stockView[data.name].remaining > 0 &&
+                                                            vm.stockView[data.name].remaining <= 5}"
+                                    title="Opened with {{vm.stockView[data.name].opening}}, restocked +{{vm.stockView[data.name].added}}, {{vm.stockView[data.name].committed}} taken">{{vm.stockView[data.name].remaining}}
+                                    left</span>
                             </label>
                             <span style="position: absolute; right: 3px;">{{data.price}}</span>
                         </p>
@@ -579,6 +620,68 @@
             </div>
         </div>
     </div>
+    <!-- Stock -->
+    <div class="modal" id="stockModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Stock</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body font13" style="text-align: left;">
+                    <div style="font-size: 11px; color: #666; margin-bottom: 8px;">Leave "Opening" blank to not track
+                        an item &mdash; it then behaves exactly as before. "Taken" counts items in open KOTs as well as
+                        completed ones.</div>
+                    <table>
+                        <tr>
+                            <th>Item</th>
+                            <th style="text-align: right;">Opening</th>
+                            <th style="text-align: right;">Restock</th>
+                            <th style="text-align: right;">Restocked</th>
+                            <th style="text-align: right;">Taken</th>
+                            <th style="text-align: right;">Left</th>
+                        </tr>
+                        <tr ng-repeat="item in vm.data track by item.name">
+                            <td>{{item.name}}
+                                <span class="stock-untracked" ng-if="vm.getMenuStock(item.name) !== null"
+                                    style="font-size: 10px;">(menu: {{vm.getMenuStock(item.name)}})</span>
+                            </td>
+                            <td style="text-align: right;">
+                                <input type="number" min="0" style="width: 64px; text-align: right;" placeholder="&mdash;"
+                                    ng-model="vm.stockOpening[item.name]"
+                                    ng-change="vm.onOpeningChange(item.name)" />
+                            </td>
+                            <td style="text-align: right;" ng-switch="!!vm.stockView[item.name]">
+                                <span ng-switch-when="true">
+                                    <input type="number" min="1" style="width: 54px; text-align: right;"
+                                        ng-model="vm.restockInput[item.name]" placeholder="+" />
+                                    <button type="button" class="btn btn-sm btn-secondary"
+                                        ng-click="vm.addStock(item.name)">Add</button>
+                                </span>
+                                <span ng-switch-default class="stock-untracked">not tracked</span>
+                            </td>
+                            <td style="text-align: right;">
+                                <span ng-if="vm.stockView[item.name]">+{{vm.stockView[item.name].added}}</span>
+                            </td>
+                            <td style="text-align: right;">
+                                <span ng-if="vm.stockView[item.name]">{{vm.stockView[item.name].committed}}</span>
+                            </td>
+                            <td style="text-align: right;"
+                                ng-class="{'stock-oversold': vm.stockView[item.name].remaining < 0}">
+                                <b ng-if="vm.stockView[item.name]">{{vm.stockView[item.name].remaining}}</b>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" ng-click="vm.resetStockToMenu()"
+                        title="Re-apply the stock values written in the menu data, discarding on-device changes">Reset
+                        to menu values</button>
+                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Sales report -->
     <div class="modal" id="salesModal">
         <div class="modal-dialog modal-lg">
@@ -645,6 +748,28 @@
                     <div style="font-size: 11px; color: #666; margin-top: 4px;">Item values are before order-level
                         discounts, so they add up to more than revenue whenever a discount was given.</div>
                     <br />
+                    <table ng-if="vm.stats.stockRows.length > 0">
+                        <tr>
+                            <th>Stock check</th>
+                            <th style="text-align: right;">Opened with</th>
+                            <th style="text-align: right;">Restocked</th>
+                            <th style="text-align: right;">Taken</th>
+                            <th style="text-align: right;">Left</th>
+                        </tr>
+                        <tr ng-repeat="row in vm.stats.stockRows track by row.name">
+                            <td>{{row.name}}</td>
+                            <td style="text-align: right;">{{row.opening}}</td>
+                            <td style="text-align: right;">+{{row.added}}</td>
+                            <td style="text-align: right;">{{row.committed}}</td>
+                            <td style="text-align: right;" ng-class="{'stock-oversold': row.remaining < 0}">
+                                {{row.remaining}}<span ng-if="row.remaining < 0"> oversold</span>
+                            </td>
+                        </tr>
+                    </table>
+                    <div style="font-size: 11px; color: #666; margin-top: 4px;"
+                        ng-if="vm.stats.stockRows.length > 0">Only items you gave an opening stock appear here. "Taken"
+                        counts open KOTs as well as completed ones.</div>
+                    <br ng-if="vm.stats.stockRows.length > 0" />
                     <table>
                         <tr>
                             <th>Hour</th>
@@ -677,8 +802,10 @@
         function MainColtroller($scope, $timeout, $interval) {
             var vm = this,
                 backUpKey = 'sioOrdersData',
-                backUpKeyData = 'sioExtraMenuItemsData'
-            backUpKeySettings = 'sioEventsSettings';
+                backUpKeyData = 'sioExtraMenuItemsData',
+                backUpKeySettings = 'sioEventsSettings',
+                backUpKeyStock = 'sioStockData',
+                backUpKeySeeded = 'sioStockSeededItems';
             vm.currentOrder = [];
             vm.orders = [];
             vm.currentIndex = -1;
@@ -687,6 +814,10 @@
             vm.stats = emptyStats();
             vm.prep = emptyPrep();
             vm.prepDetail = null;
+            vm.stock = {};
+            vm.stockView = {};
+            vm.stockOpening = {};
+            vm.restockInput = {};
             vm.settings = {
                 showCompletedOrders: false,
                 enableKOTPrinting: false,
@@ -726,6 +857,10 @@
             vm.isDiscountApplied = isDiscountApplied;
             vm.getDiscountError = getDiscountError;
             vm.printSalesReport = printSalesReport;
+            vm.onOpeningChange = onOpeningChange;
+            vm.resetStockToMenu = resetStockToMenu;
+            vm.getMenuStock = getMenuStock;
+            vm.addStock = addStock;
             vm.togglePrepDetail = togglePrepDetail;
             vm.getPrepDetail = getPrepDetail;
             vm.closePrepDetail = closePrepDetail;
@@ -748,7 +883,6 @@
                     sessionStorage.setItem('sioPageReloaded', 'true');
                     location.href = location.origin + location.pathname + '?v=' + (new Date()).getTime();
                 }
-                recalculateStats();
                 trackOrderTime();
             }
 
@@ -762,6 +896,146 @@
                         item.elapsedTimeDisplay = displayTime(ticks);
                     })
                 }, 1 * 1000);
+            }
+
+            /// Stock is opt-in per item and lives in its own key, so resetting the menu or clearing
+            /// the event's orders never silently drops it. No entry at all means "not tracked".
+            function loadStock() {
+                var saved = getDataFromLocalStorage(backUpKeyStock);
+                vm.stock = saved || {};
+                seedStockFromMenu();
+                vm.stockOpening = {};
+                _.each(vm.stock, function (entry, name) {
+                    vm.stockOpening[name] = entry.opening;
+                });
+            }
+
+            /// A "stock" value on a menu item is a starting point, not a source of truth. It is applied
+            /// the first time that item is ever seen and never again, so reloading the page mid-event
+            /// cannot wipe a restock or undo a count corrected on the device - and blanking an item in
+            /// the Stock screen stays blanked.
+            function seedStockFromMenu() {
+                var seeded = getDataFromLocalStorage(backUpKeySeeded) || {};
+                var changed = false;
+                _.each(vm.data, function (item) {
+                    if (!isValidNumber(item.stock) || seeded[item.name]) {
+                        return;
+                    }
+                    seeded[item.name] = true;
+                    changed = true;
+                    if (!vm.stock[item.name]) {
+                        vm.stock[item.name] = { opening: parseFloat(item.stock), added: 0 };
+                    }
+                });
+                if (changed) {
+                    saveDataInLocalStorage(seeded, backUpKeySeeded);
+                    saveDataInLocalStorage(vm.stock, backUpKeyStock);
+                }
+            }
+
+            /// Deliberate re-seed, for when the menu's stock numbers have been edited.
+            function resetStockToMenu() {
+                var defaults = _.filter(vm.data, function (item) {
+                    return isValidNumber(item.stock);
+                });
+                if (defaults.length === 0) {
+                    alert('No menu item has a "stock" value in the menu data, so there is nothing to reset to.');
+                    return;
+                }
+                if (!confirm('Reset ' + defaults.length + ' item(s) to the stock written in the menu?\n\n' +
+                    'Anything you restocked or corrected on this device will be replaced.')) {
+                    return;
+                }
+                var seeded = getDataFromLocalStorage(backUpKeySeeded) || {};
+                _.each(defaults, function (item) {
+                    vm.stock[item.name] = { opening: parseFloat(item.stock), added: 0 };
+                    vm.stockOpening[item.name] = vm.stock[item.name].opening;
+                    seeded[item.name] = true;
+                });
+                saveDataInLocalStorage(seeded, backUpKeySeeded);
+                saveStock();
+            }
+
+            function getMenuStock(name) {
+                var item = _.find(vm.data, function (o) {
+                    return o.name === name;
+                });
+                return item && isValidNumber(item.stock) ? parseFloat(item.stock) : null;
+            }
+
+            function saveStock() {
+                saveDataInLocalStorage(vm.stock, backUpKeyStock);
+                recalculateStock();
+            }
+
+            function onOpeningChange(name) {
+                var value = vm.stockOpening[name];
+                if (value === null || value === undefined || value === '') {
+                    delete vm.stock[name];       // blank = stop tracking this item
+                    saveStock();
+                    return;
+                }
+                var opening = parseFloat(value);
+                if (isNaN(opening) || opening < 0) {
+                    return;                      // half-typed input, wait for a usable number
+                }
+                var existing = vm.stock[name] || {};
+                vm.stock[name] = { opening: opening, added: existing.added || 0 };
+                saveStock();
+            }
+
+            function addStock(name) {
+                var qty = parseFloat(vm.restockInput[name]);
+                if (!(qty > 0)) {
+                    alert('Enter how many of ' + name + ' you are adding.');
+                    return;
+                }
+                if (!vm.stock[name]) {
+                    alert('Give ' + name + ' an opening stock before restocking it.');
+                    return;
+                }
+                vm.stock[name].added = (vm.stock[name].added || 0) + qty;
+                vm.restockInput[name] = null;
+                saveStock();
+            }
+
+            /// Anything sitting in a live KOT is already spoken for, so it counts against stock the
+            /// moment it is added rather than when the order is completed.
+            function recalculateStock() {
+                var committed = {};
+                _.each(vm.orders, function (order) {
+                    if (order.isDiscarded) {
+                        return;
+                    }
+                    _.each(order.order, function (item) {
+                        committed[item.name] = (committed[item.name] || 0) + item.quantity;
+                    });
+                });
+                var view = {};
+                _.each(vm.stock, function (entry, name) {
+                    var opening = entry.opening || 0;
+                    var added = entry.added || 0;
+                    var used = committed[name] || 0;
+                    view[name] = {
+                        name: name,
+                        opening: opening,
+                        added: added,
+                        committed: used,
+                        remaining: opening + added - used
+                    };
+                });
+                vm.stockView = view;
+            }
+
+            /// Carries the shelf forward: what is physically left becomes the next event's opening.
+            function rollStockForward() {
+                _.each(vm.stock, function (entry, name) {
+                    var row = vm.stockView[name];
+                    var remaining = row ? row.remaining : (entry.opening || 0) + (entry.added || 0);
+                    vm.stock[name] = { opening: Math.max(0, remaining), added: 0 };
+                    vm.stockOpening[name] = vm.stock[name].opening;
+                });
+                saveDataInLocalStorage(vm.stock, backUpKeyStock);
             }
 
             function emptyPrep() {
@@ -835,6 +1109,7 @@
                     itemsSold: [],
                     byHour: [],
                     topSeller: null,
+                    stockRows: [],
                     generatedOn: ''
                 };
             }
@@ -887,6 +1162,8 @@
                 stats.generatedOn = 'Generated ' + formatDateForExport(new Date());
                 vm.stats = stats;
                 recalculatePrepQueue();
+                recalculateStock();
+                stats.stockRows = _.sortBy(_.values(vm.stockView), 'name');
             }
 
             function hourLabel(date) {
@@ -967,11 +1244,14 @@
                 // Always confirm, even when "Disable All Confirmations" is on - this cannot be undone.
                 var summary = vm.orders.length + ' order(s): ' + getPendingOrdersCount() + ' open, ' +
                     getCompletedOrdersCount() + ' completed, total sales ' + getTotalSales() + '.';
+                var stockNote = _.keys(vm.stock).length ?
+                    ' Stock rolls forward: whatever is left becomes the new opening.' : '';
                 if (!confirm('Clear ' + summary + '\n\nA CSV backup will be downloaded first. ' +
-                    'This cannot be undone and KOT numbering restarts at 0001.')) {
+                    'This cannot be undone and KOT numbering restarts at 1.' + stockNote)) {
                     return;
                 }
                 exportOrders();
+                rollStockForward();
                 vm.orders = [];
                 vm.currentIndex = -1;
                 vm.orderIndexForDiscount = -1;
@@ -1337,6 +1617,9 @@
                 if (!order) {
                     return;
                 }
+                if (!isStockAvailable(data.name)) {
+                    return;
+                }
                 var item = _.find(order.order, function (o) {
                     return o.name == data.name;
                 });
@@ -1352,6 +1635,16 @@
                     });
                 }
                 takeBackup();
+            }
+
+            /// Warns once when a tracked item has run out, but never blocks the sale - counts drift,
+            /// and someone finding one more box should not cost a sale.
+            function isStockAvailable(name) {
+                var row = vm.stockView[name];
+                if (!row || row.remaining > 0 || vm.settings.disableAllConfirmations) {
+                    return true;
+                }
+                return confirm(name + ' is out of stock (' + row.remaining + ' left).\n\nAdd it anyway?');
             }
 
             /// Returns the order at `index` only if it can still be edited, otherwise undefined.
@@ -1419,27 +1712,33 @@
             var data = [ {
                 "name": "Paneer Roll",
                 "description": "",
-                "price": "149"
+                "price": "149",
+                "stock": 25
             }, {
-                "name": "Potato Wrap",
+                "name": "Potato Roll",
                 "description": "",
-                "price": "129"
+                "price": "129",
+                "stock": 25
             }, {
                 "name": "Bombay Cheese Sandwich",
                 "description": "",
-                "price": "99"
+                "price": "99",
+                "stock": 20
             },{
                 "name": "Veg Club Sandwich",
                 "description": "",
-                "price": "89"
+                "price": "89",
+                "stock": 20
             }, {
                 "name": "Samosa",
                 "description": "",
-                "price": "40"
+                "price": "40",
+                "stock": 20
             }, {
-                "name": "Veg Puff",
+                "name": "Cup Noodles",
                 "description": "",
-                "price": "50"
+                "price": "40",
+                "stock": 12
             }, {
                 "name": "Tea",
                 "description": "",
@@ -1449,17 +1748,39 @@
                 "description": "",
                 "price": "25"
             }, {
-                "name": "Frooti",
+                "name": "Mazza",
                 "description": "",
-                "price": "10"
+                "price": "10",
+                "stock": 20
             }, {
-                "name": "Mixed Fruit Juice",
+                "name": "Real Litchi Juice",
                 "description": "",
-                "price": "20"
+                "price": "10",
+                "stock": 20
             }, {
-                "name": "Pet Water Bottle",
+                "name": "Paper boat Orange Juice 160ml",
                 "description": "",
-                "price": "10"
+                "price": "25",
+                "stock": 15
+            }, {
+                "name": "Paper boat Aamras 200ml",
+                "description": "",
+                "price": "40",
+                "stock": 10
+            }, {
+                "name": "Kitkat mini",
+                "description": "",
+                "price": "5",
+                "stock": 36
+            }, {
+                "name": "Water Bottle 250ml",
+                "description": "",
+                "price": "6",
+                "stock": 24
+            }, {
+                "name": "Parcel",
+                "description": "",
+                "price": "5"
             }];
             var extendedData = getDataFromLocalStorage(backUpKeyData);
             if (extendedData) {
@@ -1467,6 +1788,9 @@
                 data = data.concat(extendedData);
             }
             vm.data = _.toArray(data);
+            // Must come after vm.data: menu-defined stock is read off the menu itself.
+            loadStock();
+            recalculateStats();
         }
     </script>
 </body>

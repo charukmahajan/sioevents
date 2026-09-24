@@ -140,7 +140,9 @@
         /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
 
         .row.content {
-            height: 100vh
+            /* 100vh would push the page
+               past the viewport by the height of the sticky prep bar above it. */
+            height: calc(100vh - 36px)
         }
 
         /* Set gray background color and 100% height */
@@ -149,6 +151,40 @@
             padding-top: 20px;
             background-color: #f1f1f1;
             height: 100%;
+        }
+
+        /* Orders live in their own wrapping container. Previously they were siblings of the menu
+           inside one Bootstrap .row, each forced to `height: 80%` of a 100vh row - so every column
+           was ~614px tall and the 4th order wrapped to a line starting below the entire menu,
+           leaving most of the screen empty. */
+
+        .orders-pane {
+            background-color: #f1f1f1;
+            height: 100%;
+            overflow-y: auto;
+            padding: 10px 5px 0 5px;
+        }
+
+        .orders-grid {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        .order-col {
+            width: 33.333%;
+            padding: 0 5px 10px 5px;
+        }
+
+        @media screen and (max-width: 767px) {
+            .orders-pane {
+                height: auto;
+                overflow: visible;
+            }
+
+            .order-col {
+                width: 100%;
+            }
         }
 
         /* Set black background color, white text and some padding */
@@ -623,69 +659,73 @@
                     </div>
                 </div>
             </div>
-            <div class="col-sm-3 sidenav" style="height: 80%;" ng-repeat="order in vm.orders" id="kot{{$index}}"
-                ng-hide="(order.isCompleted && !vm.settings.showCompletedOrders) || order.isDiscarded">
-                <div class="card">
-                    <div class="card-body"
-                        ng-class="{'selectedOrder': vm.currentIndex==$index, 'item-flash': vm.flashKot === $index}">
-                        <div class="kot-icons notforPrint">
-                            <input ng-disabled="order.isCompleted" title="Mark the whole order served" type="checkbox"
-                                ng-model="order.isServed" ng-change="vm.onOrderServedChange(order)" />
-                            <a href="javascript:void(0);" ng-click="vm.printKOT($index)"
-                                title="Print this KOT now, without completing it (shortcut: P)">
-                                <i class="fa fa-print" aria-hidden="true"></i></a>
-                            <a href="javascript:void(0);" ng-click="vm.addCustomerName($index)"
-                                title="Add/Edit Customer Name">
-                                <i class="fa fa-user" aria-hidden="true"></i></a>
-                            <a href="javascript:void(0);" ng-click="vm.addComments($index)" title="Add/Edit Comments">
-                                <i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
-                            <a href="javascript:void(0);" ng-click="vm.discardKOT($index)" class="kot-discard"
-                                title="Discard this KOT (always asks first)">
-                                <i class="fa fa-trash" aria-hidden="true"></i></a>
+            <div class="col-sm-9 orders-pane">
+                <div class="orders-grid">
+                    <div class="order-col" ng-repeat="order in vm.orders" id="kot{{$index}}"
+                        ng-hide="(order.isCompleted && !vm.settings.showCompletedOrders) || order.isDiscarded">
+                        <div class="card">
+                            <div class="card-body"
+                                ng-class="{'selectedOrder': vm.currentIndex==$index, 'item-flash': vm.flashKot === $index}">
+                                <div class="kot-icons notforPrint">
+                                    <input ng-disabled="order.isCompleted" title="Mark the whole order served" type="checkbox"
+                                        ng-model="order.isServed" ng-change="vm.onOrderServedChange(order)" />
+                                    <a href="javascript:void(0);" ng-click="vm.printKOT($index)"
+                                        title="Print this KOT now, without completing it (shortcut: P)">
+                                        <i class="fa fa-print" aria-hidden="true"></i></a>
+                                    <a href="javascript:void(0);" ng-click="vm.addCustomerName($index)"
+                                        title="Add/Edit Customer Name">
+                                        <i class="fa fa-user" aria-hidden="true"></i></a>
+                                    <a href="javascript:void(0);" ng-click="vm.addComments($index)" title="Add/Edit Comments">
+                                        <i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
+                                    <a href="javascript:void(0);" ng-click="vm.discardKOT($index)" class="kot-discard"
+                                        title="Discard this KOT (always asks first)">
+                                        <i class="fa fa-trash" aria-hidden="true"></i></a>
+                                </div>
+                                <div class="kot-no">
+                                    <span class="kot-time"
+                                        ng-class="{'blink': !order.isCompleted && order.elapsedTime > vm.settings.defaultPrepTime * 60}"
+                                        ng-style="order.elapsedTime < vm.settings.defaultPrepTime * 60 && {'color':'green'} || {'color': 'red'}">{{order.elapsedTimeDisplay}}</span>
+                                    KOT {{vm.getKOTToDisplay($index)}}
+                                </div>
+                                <div class="kot-cust" ng-if="order.custName">{{order.custName}}</div>
+                                <hr style="margin: 4px 0px 8px 0px;" />
+                                <div ng-repeat="item in order.order"
+                                    style="text-align: left; margin-bottom: 7px;width: 65%;border-bottom: dashed 1px #ddd;"
+                                    class="font12">
+                                    <input ng-disabled="order.isCompleted" class="notforPrint" title="Item Served"
+                                        type="checkbox" ng-model="item.isServed" ng-change="vm.onServedChange()" />
+                                    {{item.name}} <span style="position: absolute; right: 0px;margin-right:
+                        2px;"><a ng-click="vm.removeItem(item, $parent.$index)" href="javascript:void(0);"><i
+                                                class="fa fa-minus" aria-hidden="true"></i></a> <span class="notforPrint"
+                                            style="font-size: 10px;">{{item.quantity}}</span>
+                                        <a ng-click="vm.addItem(item, $parent.$index)" href="javascript:void(0);"><i
+                                                class="fa fa-plus" aria-hidden="true"></i></a> {{item.totalPrice}}
+                                    </span>
+                                </div>
+                                <span class="kot-total-label">Total:</span><a href="javascript:void(0);"
+                                    data-toggle="modal" data-target="#myModal" ng-click="vm.setOrderForDiscount($index)"
+                                    title="Add/Edit Discount" class="notforPrint"
+                                    style="font-size: 12px;float: left;margin-top:8px">
+                                    <i class="fa fa-percent" aria-hidden="true"></i></a><span class="kot-total"><span class="blue"
+                                        ng-if="vm.isDiscountApplied($index) && order.discountType=='%'">{{order.discountValue}} % off
+                                    </span><span class="blue"
+                                        ng-if="vm.isDiscountApplied($index) && order.discountType=='flat'">flat
+                                        {{order.discountValue}} off
+                                    </span>{{vm.getTotal($index)}}</span>
+                                <div ng-if="order.comments" class="comments"><br />{{order.comments}}</div>
+                                <br />
+                                <hr />
+                                <button type="button" ng-if="vm.getPendingOrdersCount()> 1 && !order.isCompleted"
+                                    title="Click here to make changes in this KOT"
+                                    ng-class="{'btn-primary': vm.currentIndex== $index}" class="btn btn-sm"
+                                    ng-click="vm.selectThisOrder($index)" style="align-self: center;">Selected Order</button>
+                                <button ng-disabled="order.order.length==0" ng-if="order.isCompleted" type="button"
+                                    class="btn btn-danger btn-sm pull-right" ng-click="vm.reopenKOT($index)">Reopen</button>
+                                <button ng-disabled="order.order.length==0" ng-if="!order.isCompleted" type="button"
+                                    class="btn btn-success pull-right"
+                                    ng-click="vm.completeKOT($index)">Complete</button>
+                            </div>
                         </div>
-                        <div class="kot-no">
-                            <span class="kot-time"
-                                ng-class="{'blink': !order.isCompleted && order.elapsedTime > vm.settings.defaultPrepTime * 60}"
-                                ng-style="order.elapsedTime < vm.settings.defaultPrepTime * 60 && {'color':'green'} || {'color': 'red'}">{{order.elapsedTimeDisplay}}</span>
-                            KOT {{vm.getKOTToDisplay($index)}}
-                        </div>
-                        <div class="kot-cust" ng-if="order.custName">{{order.custName}}</div>
-                        <hr style="margin: 4px 0px 8px 0px;" />
-                        <div ng-repeat="item in order.order"
-                            style="text-align: left; margin-bottom: 7px;width: 65%;border-bottom: dashed 1px #ddd;"
-                            class="font12">
-                            <input ng-disabled="order.isCompleted" class="notforPrint" title="Item Served"
-                                type="checkbox" ng-model="item.isServed" ng-change="vm.onServedChange()" />
-                            {{item.name}} <span style="position: absolute; right: 0px;margin-right:
-                2px;"><a ng-click="vm.removeItem(item, $parent.$index)" href="javascript:void(0);"><i
-                                        class="fa fa-minus" aria-hidden="true"></i></a> <span class="notforPrint"
-                                    style="font-size: 10px;">{{item.quantity}}</span>
-                                <a ng-click="vm.addItem(item, $parent.$index)" href="javascript:void(0);"><i
-                                        class="fa fa-plus" aria-hidden="true"></i></a> {{item.totalPrice}}
-                            </span>
-                        </div>
-                        <span class="kot-total-label">Total:</span><a href="javascript:void(0);"
-                            data-toggle="modal" data-target="#myModal" ng-click="vm.setOrderForDiscount($index)"
-                            title="Add/Edit Discount" class="notforPrint"
-                            style="font-size: 12px;float: left;margin-top:8px">
-                            <i class="fa fa-percent" aria-hidden="true"></i></a><span class="kot-total"><span class="blue"
-                                ng-if="vm.isDiscountApplied($index) && order.discountType=='%'">{{order.discountValue}} % off
-                            </span><span class="blue"
-                                ng-if="vm.isDiscountApplied($index) && order.discountType=='flat'">flat
-                                {{order.discountValue}} off
-                            </span>{{vm.getTotal($index)}}</span>
-                        <div ng-if="order.comments" class="comments"><br />{{order.comments}}</div>
-                        <br />
-                        <hr />
-                        <button type="button" ng-if="vm.getPendingOrdersCount()> 1 && !order.isCompleted"
-                            title="Click here to make changes in this KOT"
-                            ng-class="{'btn-primary': vm.currentIndex== $index}" class="btn btn-sm"
-                            ng-click="vm.selectThisOrder($index)" style="align-self: center;">Selected Order</button>
-                        <button ng-disabled="order.order.length==0" ng-if="order.isCompleted" type="button"
-                            class="btn btn-danger btn-sm pull-right" ng-click="vm.reopenKOT($index)">Reopen</button>
-                        <button ng-disabled="order.order.length==0" ng-if="!order.isCompleted" type="button"
-                            class="btn btn-success pull-right"
-                            ng-click="vm.completeKOT($index)">Complete</button>
                     </div>
                 </div>
             </div>

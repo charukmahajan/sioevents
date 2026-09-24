@@ -342,6 +342,42 @@
             font-weight: bold;
         }
 
+        .item-key {
+            display: inline-block;
+            min-width: 15px;
+            text-align: center;
+            font-weight: bold;
+            color: #fff;
+            background-color: #333;
+            border-radius: 3px;
+            font-size: 11px;
+            padding: 0 3px;
+            margin-right: 3px;
+        }
+
+        /* Letters go grey while the filter box has focus - a visible "keys are off" cue. */
+
+        .keys-off .item-key {
+            background-color: #d6d6d6;
+            color: #909090;
+        }
+
+        .key-legend {
+            font-size: 10px;
+            color: #888;
+            text-align: left;
+            margin: 2px 0 4px;
+        }
+
+        .keys-off .key-legend {
+            color: #c4c4c4;
+        }
+
+        .item-flash {
+            background-color: #ffe9a8;
+            border-radius: 3px;
+        }
+
         .stock-badge {
             font-size: 10px;
             color: #2e7d32;
@@ -471,7 +507,8 @@
     </div>
     <div class="container-fluid text-center">
         <div class="row content">
-            <div class="col-sm-3 sidenav" style="max-height: 80%; overflow-y: auto;">
+            <div class="col-sm-3 sidenav" style="max-height: 80%; overflow-y: auto;"
+                ng-class="{'keys-off': vm.filterFocused}">
                 <div class="card">
                     <a href="https://shakeitoff.in/" style="margin: 8px 0px 0px 8px; position: absolute; left: 38%;"
                         target="_blank">
@@ -488,12 +525,18 @@
                         <br />
                         <br />
                         <input type="text" tabindex="1" style="width: 90%;height: 24px;" placeholder="Type to filter"
-                            accesskey="L" ng-model="vm.filter" />
-                        <p ng-repeat="data in vm.data |filter:vm.filter" style="text-align: left;" class="font14">
+                            accesskey="L" ng-model="vm.filter" ng-focus="vm.filterFocused = true"
+                            ng-blur="vm.filterFocused = false" ng-keydown="vm.onFilterKey($event)" />
+                        <div class="key-legend">letters add &middot; <b>{{vm.printKeyLabel}}</b> prints the selected
+                            KOT &middot; Esc leaves the filter</div>
+                        <p ng-repeat="data in vm.data |filter:vm.filter" style="text-align: left;" class="font14"
+                            ng-class="{'item-flash': vm.flashItem === data.name}">
                             <label style="width:90%;">
+                                <span class="item-key" ng-if="vm.itemKeys[data.name]"
+                                    title="Press {{vm.itemKeys[data.name]}} to add">{{vm.itemKeys[data.name]}}</span>
                                 <a ng-click="vm.addItem(data, vm.currentIndex)" href="javascript:void(0);"
                                     title="{{data.description}}" style="width: 70%;">
-                                    {{$index+1}}. {{data.name}}
+                                    {{data.name}}
                                 </a>
                                 <span class="stock-badge" ng-if="vm.stockView[data.name]"
                                     ng-class="{'stock-out': vm.stockView[data.name].remaining <= 0,
@@ -517,12 +560,13 @@
                 <div class="card">
                     <img class="onlyforPrint" ng-src="data:image/png;base64,{{vm.logoData}}" alt="Shake It Off"
                         style="height: 50px; width: 50px; margin-left: 43%; margin-top: 2px;" />
-                    <div class="card-body" ng-class="{'selectedOrder': vm.currentIndex==$index}">
+                    <div class="card-body"
+                        ng-class="{'selectedOrder': vm.currentIndex==$index, 'item-flash': vm.flashKot === $index}">
                         <a href="javascript:void(0);" ng-click="vm.addComments($index)" title="Add/Edit Comments"
                             class="notforPrint" style="position: absolute;left: 0px;top:0px;font-size: 12px;">
                             <i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
                         <a href="javascript:void(0);" ng-click="vm.printKOT($index)"
-                            title="Print this KOT now (does not complete the order)" class="notforPrint"
+                            title="Print this KOT now, without completing it (shortcut: P)" class="notforPrint"
                             style="position: absolute;left: 18px;top:0px;font-size: 12px;">
                             <i class="fa fa-print" aria-hidden="true"></i></a>
                         <div class="card-title" style="font-size: 16px;margin-bottom:2px;"><b>KOT<span
@@ -805,7 +849,12 @@
                 backUpKeyData = 'sioExtraMenuItemsData',
                 backUpKeySettings = 'sioEventsSettings',
                 backUpKeyStock = 'sioStockData',
-                backUpKeySeeded = 'sioStockSeededItems';
+                backUpKeySeeded = 'sioStockSeededItems',
+                UNGROUPED_LABEL = 'Counter',
+                SLIP_WIDTH_MM = 80,      // change to 58 for a 58mm roll
+                SLIP_MARGIN_MM = 2,
+                SLIP_PAD_MM = 3,         // guard against rounding pushing a slip onto a second page
+                PRINT_KEY = 'p';         // reserved: prints the selected KOT without completing it
             vm.currentOrder = [];
             vm.orders = [];
             vm.currentIndex = -1;
@@ -818,6 +867,12 @@
             vm.stockView = {};
             vm.stockOpening = {};
             vm.restockInput = {};
+            vm.itemKeys = {};
+            vm.keyToItem = {};
+            vm.filterFocused = false;
+            vm.flashItem = null;
+            vm.flashKot = null;
+            vm.printKeyLabel = PRINT_KEY.toUpperCase();
             vm.settings = {
                 showCompletedOrders: false,
                 enableKOTPrinting: false,
@@ -859,6 +914,9 @@
             vm.printSalesReport = printSalesReport;
             vm.onOpeningChange = onOpeningChange;
             vm.resetStockToMenu = resetStockToMenu;
+            vm.onFilterKey = onFilterKey;
+            vm.addItemByKey = addItemByKey;
+            vm.printCurrentKOT = printCurrentKOT;
             vm.getMenuStock = getMenuStock;
             vm.addStock = addStock;
             vm.togglePrepDetail = togglePrepDetail;
@@ -1233,6 +1291,8 @@
                 };
                 vm.extendedData.push(menuItem);
                 vm.data.push(menuItem);
+                buildItemKeys();
+                buildGroupOrder();
                 takeBackup();
             }
 
@@ -1402,30 +1462,295 @@
                 return true;
             }
 
+            /// One popup holding every group's slip, separated by page breaks - so a multi-group order
+            /// is a single print job of N pages, not N popups (which would be N dialogs and would trip
+            /// the popup blocker).
             function printKOT(index) {
-                var prtContent = document.getElementById('kot' + index);
-                if (!prtContent) {
+                var order = vm.orders[index];
+                if (!order || !order.order || order.order.length === 0) {
                     return;
                 }
-                var WinPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+                var WinPrint = window.open('', '', 'left=0,top=0,width=400,height=900,toolbar=0,scrollbars=0,status=0');
                 if (!WinPrint) {
                     alert('Please allow popups to print the KOT.');
                     return;
                 }
-                $(prtContent).find('button').css('display', 'none');
-                $(prtContent).find('.notforPrint').css('display', 'none');
-                var markup = prtContent.innerHTML;
-                // Restore the on-screen card immediately - it is already captured in `markup`.
-                $(prtContent).find('button').css('display', '');
-                $(prtContent).find('.notforPrint').css('display', '');
-                WinPrint.document.write(buildPrintDocument(markup));
+                WinPrint.document.write(buildKotDocument(index));
                 WinPrint.document.close();
+                applySlipPageSizes(WinPrint);
                 WinPrint.focus();
                 WinPrint.print();
                 WinPrint.close();
                 // NOTE: completing the order is the caller's job (completeKOT) - doing it here too
                 // ran completeOrder twice.
             }
+
+            /// Letters are assigned from the item's position in the FULL menu, never the filtered
+            /// view - otherwise every key would move as soon as you typed in the filter box.
+            /// Re-ordering the menu therefore re-letters everything: settle the order before an event.
+            function buildItemKeys() {
+                // PRINT_KEY is held back from the pool: otherwise a 16th menu item would quietly claim
+                // it and pressing it would start adding that item instead of printing.
+                var letters = _.without('abcdefghijklmnopqrstuvwxyz'.split(''), PRINT_KEY);
+                vm.itemKeys = {};
+                vm.keyToItem = {};
+                var next = 0;
+                _.each(vm.data, function (item) {
+                    if (next >= letters.length || vm.itemKeys[item.name]) {
+                        return;             // out of letters, or a duplicate name - still clickable
+                    }
+                    var key = letters[next++];
+                    vm.itemKeys[item.name] = key;
+                    vm.keyToItem[key] = item;
+                });
+            }
+
+            /// Prints the KOT you are currently building, leaving it open so you can keep adding to it.
+            function printCurrentKOT() {
+                var index = vm.currentIndex;
+                var order = vm.orders[index];
+                if (!order || order.isDiscarded || !order.order || order.order.length === 0) {
+                    return false;
+                }
+                printKOT(index);
+                flashKot(index);
+                return true;
+            }
+
+            function flashKot(index) {
+                vm.flashKot = index;
+                $timeout(function () {
+                    if (vm.flashKot === index) {
+                        vm.flashKot = null;
+                    }
+                }, 400);
+            }
+
+            /// One press = one unit. Holding the key down is ignored (see the keydown handler), so a
+            /// leaning elbow cannot quietly add thirty samosas.
+            function addItemByKey(key) {
+                var item = vm.keyToItem[key];
+                if (!item) {
+                    return false;
+                }
+                var current = vm.orders[vm.currentIndex];
+                if (!current || current.isCompleted || current.isDiscarded) {
+                    addNewOrder();          // nothing open: start one rather than block on an alert
+                }
+                addItem(item, vm.currentIndex);
+                flashItem(item.name);
+                return true;
+            }
+
+            function flashItem(name) {
+                vm.flashItem = name;
+                $timeout(function () {
+                    if (vm.flashItem === name) {
+                        vm.flashItem = null;
+                    }
+                }, 220);
+            }
+
+            function onFilterKey(event) {
+                if (event.key === 'Escape') {
+                    vm.filter = '';
+                    event.target.blur();    // back to hotkey mode
+                }
+            }
+
+            /// Listening on the document rather than the menu element: focus lands on a Complete or
+            /// Discard button after every order, and keys going dead at exactly that moment would be
+            /// the worst possible behaviour mid-rush.
+            function isTypingTarget(el) {
+                if (!el) {
+                    return false;
+                }
+                var tag = (el.tagName || '').toLowerCase();
+                return tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable;
+            }
+
+            function onDocumentKeydown(event) {
+                if (event.ctrlKey || event.altKey || event.metaKey || event.repeat) {
+                    return;                 // leave browser shortcuts and key-repeat alone
+                }
+                if (isTypingTarget(event.target) || document.querySelector('.modal.show')) {
+                    return;
+                }
+                var key = (event.key || '').toLowerCase();
+                if (key.length !== 1 || key < 'a' || key > 'z') {
+                    return;
+                }
+                if (key === PRINT_KEY) {
+                    event.preventDefault();
+                    $scope.$apply(function () {
+                        printCurrentKOT();
+                    });
+                    return;
+                }
+                if (vm.keyToItem[key]) {
+                    event.preventDefault();
+                    $scope.$apply(function () {
+                        addItemByKey(key);
+                    });
+                }
+            }
+
+            angular.element(document).on('keydown', onDocumentKeydown);
+            $scope.$on('$destroy', function () {
+                angular.element(document).off('keydown', onDocumentKeydown);
+            });
+
+            /// Gives every slip its own page box, exactly as tall as the slip. Without this a roll
+            /// printer feeds a full sheet's worth of blank paper after each short slip, because CSS
+            /// has no way to say "as tall as the content".
+            function applySlipPageSizes(win) {
+                try {
+                    var doc = win.document;
+                    var slips = doc.querySelectorAll('.slip');
+                    var css = '';
+                    for (var i = 0; i < slips.length; i++) {
+                        var heightMm = Math.ceil(slips[i].getBoundingClientRect().height / 96 * 25.4) +
+                            2 * SLIP_MARGIN_MM + SLIP_PAD_MM;
+                        css += '@page s' + i + ' { size: ' + SLIP_WIDTH_MM + 'mm ' + heightMm +
+                            'mm; margin: ' + SLIP_MARGIN_MM + 'mm; } .s' + i + ' { page: s' + i + '; } ';
+                    }
+                    var style = doc.createElement('style');
+                    style.appendChild(doc.createTextNode(css));
+                    doc.head.appendChild(style);
+                } catch (e) {
+                    // Measuring is a nicety; if it fails the driver's own paper size still applies.
+                }
+            }
+
+            /// The group an item belongs to, falling back to the catch-all so nothing can be
+            /// silently left off every slip just because someone forgot to set a group.
+            function getItemGroup(itemName) {
+                var menuItem = _.find(vm.data, function (o) {
+                    return o.name === itemName;
+                });
+                var group = menuItem && menuItem.group ? ('' + menuItem.group).trim() : '';
+                return group || UNGROUPED_LABEL;
+            }
+
+            /// Groups are whatever distinct "group" values the menu uses; they print in the order the
+            /// menu first mentions them, so slip order is controlled by how the menu is written.
+            function buildGroupOrder() {
+                var order = {};
+                var next = 0;
+                _.each(vm.data, function (item) {
+                    var group = item.group ? ('' + item.group).trim() : '';
+                    if (group && order[group] === undefined) {
+                        order[group] = next++;
+                    }
+                });
+                order[UNGROUPED_LABEL] = 9999;   // catch-all always last
+                vm.groupOrder = order;
+            }
+
+            function getOrderGroups(index) {
+                var order = vm.orders[index];
+                if (!order || !order.order) {
+                    return [];
+                }
+                var groups = {};
+                _.each(order.order, function (line) {
+                    var name = getItemGroup(line.name);
+                    if (!groups[name]) {
+                        groups[name] = { name: name, items: [] };
+                    }
+                    groups[name].items.push(line);
+                });
+                return _.sortBy(_.values(groups), function (group) {
+                    var rank = vm.groupOrder[group.name];
+                    return rank === undefined ? 9998 : rank;
+                });
+            }
+
+            /// Slips are built from the order data rather than scraped from the DOM, so names that
+            /// came out of a prompt have to be escaped by hand.
+            function escapeHtml(value) {
+                return (value === null || value === undefined ? '' : '' + value)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+            }
+
+            function formatSlipTime(value) {
+                var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                var date = new Date(value);
+                if (isNaN(date.getTime())) {
+                    return '';
+                }
+                return date.getDate() + ' ' + months[date.getMonth()] + ', ' + pad(date.getHours(), 2) + ':' +
+                    pad(date.getMinutes(), 2);
+            }
+
+            function buildSlipMarkup(index, group, position, total) {
+                var order = vm.orders[index];
+                var rows = _.map(group.items, function (line) {
+                    return '<tr><td class="q">' + line.quantity + '</td><td class="n">' +
+                        escapeHtml(line.name) + '</td><td class="p">' + line.totalPrice + '</td></tr>';
+                }).join('');
+                var seq = total > 1 ? '<span class="seq">slip ' + position + ' of ' + total + '</span>' : '';
+                // Only the first slip carries money; the rest are prep lists.
+                var totals = position === 1 ?
+                    '<table class="tot"><tr><td>KOT total</td><td class="p">' + getTotal(index) +
+                    '</td></tr></table>' : '';
+                var comments = order.comments ?
+                    '<div class="cmt">' + escapeHtml(order.comments) + '</div>' : '';
+                return '<div class="slip s' + (position - 1) + '">' +
+                    '<img class="logo" src="data:image/png;base64,' + vm.logoData + '" alt="" />' +
+                    '<div class="brand">SHAKE IT OFF</div>' +
+                    '<div class="head">' + seq + '<span class="kotno">KOT ' + getKOTToDisplay(index) +
+                    '</span></div>' +
+                    '<div class="cust">' + escapeHtml(order.custName || '') + '</div>' +
+                    '<div class="when">' + formatSlipTime(order.dateTime) + '</div>' +
+                    '<div class="group">' + escapeHtml(group.name) + '</div>' +
+                    '<table class="items">' + rows + '</table>' +
+                    totals + comments +
+                    '</div>';
+            }
+
+            function buildKotDocument(index) {
+                var groups = getOrderGroups(index);
+                var slips = _.map(groups, function (group, i) {
+                    return buildSlipMarkup(index, group, i + 1, groups.length);
+                }).join('');
+                return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>KOT ' +
+                    getKOTToDisplay(index) + '</title>' + KOT_SLIP_STYLES + '</head><body>' + slips +
+                    '</body></html>';
+            }
+
+            /// 80mm thermal roll: "size: 80mm auto" makes every page exactly as tall as its slip, so
+            /// nothing feeds blank paper between slips. The browser's own header/footer (URL, date,
+            /// page number) is NOT reachable from CSS - that is a checkbox in the print dialog.
+            var KOT_SLIP_STYLES = '<style>' +
+                // No "size" here on purpose: "80mm auto" is invalid CSS and Chrome drops the whole
+                // declaration, falling back to Letter. Exact per-slip sizes are measured and injected
+                // by applySlipPageSizes(); without them the printer driver's own roll size applies.
+                '@page { margin: ' + SLIP_MARGIN_MM + 'mm; }' +
+                'html, body { margin: 0; padding: 0; }' +
+                'body { font-family: Arial, Helvetica, sans-serif; color: #000; width: ' +
+                (SLIP_WIDTH_MM - 2 * SLIP_MARGIN_MM) + 'mm; }' +
+                '.slip { page-break-after: always; padding-bottom: 2mm; }' +
+                '.slip:last-child { page-break-after: auto; }' +
+                '.logo { display: block; margin: 0 auto 1px; height: 32px; width: 32px; }' +
+                '.brand { text-align: center; font-size: 10px; font-weight: bold; letter-spacing: 2px; }' +
+                '.head { overflow: hidden; margin-top: 3px; }' +
+                '.kotno { font-size: 19px; font-weight: bold; }' +
+                '.seq { float: right; font-size: 10px; padding-top: 7px; }' +
+                '.cust { font-size: 15px; font-weight: bold; line-height: 1.1; }' +
+                '.when { font-size: 10px; }' +
+                '.group { text-align: center; font-size: 15px; font-weight: bold; text-transform: uppercase;' +
+                ' letter-spacing: 1px; border-top: 1px dashed #000; border-bottom: 1px dashed #000;' +
+                ' padding: 2px 0; margin: 4px 0 3px; }' +
+                'table.items, table.tot { width: 100%; border-collapse: collapse; }' +
+                'table.items td { padding: 1px 0; vertical-align: top; font-size: 14px; }' +
+                'td.q { width: 24px; font-weight: bold; }' +
+                'td.p { text-align: right; width: 52px; white-space: nowrap; }' +
+                'table.tot { border-top: 1px solid #000; margin-top: 3px; }' +
+                'table.tot td { font-size: 13px; font-weight: bold; padding-top: 2px; }' +
+                '.cmt { font-size: 11px; font-style: italic; margin-top: 3px; }' +
+                '</style>';
 
             function buildPrintDocument(bodyMarkup) {
                 var styles = '<style>' +
@@ -1713,60 +2038,72 @@
                 "name": "Paneer Roll",
                 "description": "",
                 "price": "149",
-                "stock": 25
+                "stock": 25,
+                "group": "Sw/Roll"
             }, {
                 "name": "Potato Roll",
                 "description": "",
                 "price": "129",
-                "stock": 25
+                "stock": 25,
+                "group": "Sw/Roll"
             }, {
                 "name": "Bombay Cheese Sandwich",
                 "description": "",
                 "price": "99",
-                "stock": 20
+                "stock": 20,
+                "group": "Sw/Roll"
             },{
                 "name": "Veg Club Sandwich",
                 "description": "",
                 "price": "89",
-                "stock": 20
+                "stock": 20,
+                "group": "Sw/Roll"
             }, {
                 "name": "Samosa",
                 "description": "",
                 "price": "40",
-                "stock": 20
+                "stock": 20,
+                "group": "Sw/Roll"
             }, {
                 "name": "Cup Noodles",
                 "description": "",
                 "price": "40",
-                "stock": 12
+                "stock": 12,
+                "group": "tea/snacks"
             }, {
                 "name": "Tea",
                 "description": "",
-                "price": "25"
+                "price": "25",
+                "group": "tea/snacks"
             }, {
                 "name": "Coffee",
                 "description": "",
-                "price": "25"
+                "price": "25",
+                "group": "tea/snacks"
             }, {
                 "name": "Mazza",
                 "description": "",
                 "price": "10",
-                "stock": 20
+                "stock": 20,
+                "group": "Bev"
             }, {
                 "name": "Real Litchi Juice",
                 "description": "",
                 "price": "10",
-                "stock": 20
+                "stock": 20,
+                "group": "Bev"
             }, {
                 "name": "Paper boat Orange Juice 160ml",
                 "description": "",
                 "price": "25",
-                "stock": 15
+                "stock": 15,
+                "group": "Bev"
             }, {
                 "name": "Paper boat Aamras 200ml",
                 "description": "",
                 "price": "40",
-                "stock": 10
+                "stock": 10,
+                "group": "Bev"
             }, {
                 "name": "Kitkat mini",
                 "description": "",
@@ -1790,6 +2127,8 @@
             vm.data = _.toArray(data);
             // Must come after vm.data: menu-defined stock is read off the menu itself.
             loadStock();
+            buildGroupOrder();
+            buildItemKeys();
             recalculateStats();
         }
     </script>

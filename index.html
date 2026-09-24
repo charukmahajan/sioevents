@@ -110,8 +110,12 @@
             display: none;
         }
 
+        /* NB: this used to say `display: unset`, which resolves to `inline` (display is not an
+           inherited property) and silently forced every element carrying the class inline. The class
+           is only a hook for the print stylesheet, so it needs no display rule at all. */
+
         .notforPrint {
-            display: unset;
+            /* intentionally empty */
         }
 
         .selectedOrder {
@@ -342,6 +346,70 @@
             font-weight: bold;
         }
 
+        .kot-icons {
+            overflow: hidden;
+            font-size: 13px;
+            line-height: 1;
+            margin-bottom: 1px;
+            text-align: left;
+        }
+
+        .kot-icons a {
+            color: #777;
+            margin-right: 8px;
+        }
+
+        .kot-icons input {
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        /* Discard is pushed away from everything else and stays muted until you mean it - it is the
+           one action on the card that destroys work, and confirmations may be switched off. */
+
+        .kot-icons .kot-discard {
+            float: right;
+            margin-right: 0;
+            color: #d4b3b7;
+        }
+
+        .kot-icons .kot-discard:hover {
+            color: #dc3545;
+        }
+
+        .kot-no {
+            font-size: 27px;
+            font-weight: bold;
+            line-height: 1.05;
+            letter-spacing: -0.5px;
+        }
+
+        .kot-time {
+            font-size: 13px;
+            font-weight: normal;
+            float: right;
+            padding-top: 11px;
+        }
+
+        .kot-cust {
+            font-size: 15px;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+
+        .kot-total-label {
+            float: left;
+            margin-top: 5px;
+        }
+
+        .kot-total {
+            float: right;
+            font-size: 21px;
+            font-weight: bold;
+            line-height: 1.1;
+            border-top: dotted 1px;
+        }
+
         .item-key {
             display: inline-block;
             min-width: 15px;
@@ -558,34 +626,33 @@
             <div class="col-sm-3 sidenav" style="height: 80%;" ng-repeat="order in vm.orders" id="kot{{$index}}"
                 ng-hide="(order.isCompleted && !vm.settings.showCompletedOrders) || order.isDiscarded">
                 <div class="card">
-                    <img class="onlyforPrint" ng-src="data:image/png;base64,{{vm.logoData}}" alt="Shake It Off"
-                        style="height: 50px; width: 50px; margin-left: 43%; margin-top: 2px;" />
                     <div class="card-body"
                         ng-class="{'selectedOrder': vm.currentIndex==$index, 'item-flash': vm.flashKot === $index}">
-                        <a href="javascript:void(0);" ng-click="vm.addComments($index)" title="Add/Edit Comments"
-                            class="notforPrint" style="position: absolute;left: 0px;top:0px;font-size: 12px;">
-                            <i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
-                        <a href="javascript:void(0);" ng-click="vm.printKOT($index)"
-                            title="Print this KOT now, without completing it (shortcut: P)" class="notforPrint"
-                            style="position: absolute;left: 18px;top:0px;font-size: 12px;">
-                            <i class="fa fa-print" aria-hidden="true"></i></a>
-                        <div class="card-title" style="font-size: 16px;margin-bottom:2px;"><b>KOT<span
-                                    style="font-size: 14px;"> - {{vm.getKOTToDisplay($index)}}</span></b></div>
-                        <span class="notforPrint"
-                            ng-class="{'blink': !order.isCompleted && order.elapsedTime > vm.settings.defaultPrepTime * 60}"
-                            ng-style="order.elapsedTime < vm.settings.defaultPrepTime * 60 && {'color':'green'} || {'color': 'red'}"
-                            style="position: absolute; right: 15px; top:0px;font-size: 11px;color: green;">{{order.elapsedTimeDisplay}}</span>
-                        <a href="javascript:void(0);" ng-click="vm.addCustomerName($index)"
-                            title="Add/Edit Customer Name" class="notforPrint"
-                            style="position: absolute;right: 0px;top:0px;font-size: 12px;">
-                            <i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
-                        <input ng-disabled="order.isCompleted" class="notforPrint" title="Order Served" type="checkbox"
-                            ng-model="order.isServed" ng-change="vm.onOrderServedChange(order)"
-                            style="position: absolute; left: 4px;top: 18px;" />
-                        <div style="font-size: 14px;"><b>{{order.custName}}</b> {{order.dateTime | date:'medium'}}</div>
-                        <hr style="margin: 5px 0px 15px 0px;" />
+                        <div class="kot-icons notforPrint">
+                            <input ng-disabled="order.isCompleted" title="Mark the whole order served" type="checkbox"
+                                ng-model="order.isServed" ng-change="vm.onOrderServedChange(order)" />
+                            <a href="javascript:void(0);" ng-click="vm.printKOT($index)"
+                                title="Print this KOT now, without completing it (shortcut: P)">
+                                <i class="fa fa-print" aria-hidden="true"></i></a>
+                            <a href="javascript:void(0);" ng-click="vm.addCustomerName($index)"
+                                title="Add/Edit Customer Name">
+                                <i class="fa fa-user" aria-hidden="true"></i></a>
+                            <a href="javascript:void(0);" ng-click="vm.addComments($index)" title="Add/Edit Comments">
+                                <i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
+                            <a href="javascript:void(0);" ng-click="vm.discardKOT($index)" class="kot-discard"
+                                title="Discard this KOT (always asks first)">
+                                <i class="fa fa-trash" aria-hidden="true"></i></a>
+                        </div>
+                        <div class="kot-no">
+                            <span class="kot-time"
+                                ng-class="{'blink': !order.isCompleted && order.elapsedTime > vm.settings.defaultPrepTime * 60}"
+                                ng-style="order.elapsedTime < vm.settings.defaultPrepTime * 60 && {'color':'green'} || {'color': 'red'}">{{order.elapsedTimeDisplay}}</span>
+                            KOT {{vm.getKOTToDisplay($index)}}
+                        </div>
+                        <div class="kot-cust" ng-if="order.custName">{{order.custName}}</div>
+                        <hr style="margin: 4px 0px 8px 0px;" />
                         <div ng-repeat="item in order.order"
-                            style="text-align: left; margin-bottom: 15px;width: 65%;border-bottom: dashed 1px #ddd;"
+                            style="text-align: left; margin-bottom: 7px;width: 65%;border-bottom: dashed 1px #ddd;"
                             class="font12">
                             <input ng-disabled="order.isCompleted" class="notforPrint" title="Item Served"
                                 type="checkbox" ng-model="item.isServed" ng-change="vm.onServedChange()" />
@@ -597,12 +664,11 @@
                                         class="fa fa-plus" aria-hidden="true"></i></a> {{item.totalPrice}}
                             </span>
                         </div>
-                        <span style="margin-top: 3px;float: left;">Total:</span><a href="javascript:void(0);"
+                        <span class="kot-total-label">Total:</span><a href="javascript:void(0);"
                             data-toggle="modal" data-target="#myModal" ng-click="vm.setOrderForDiscount($index)"
                             title="Add/Edit Discount" class="notforPrint"
-                            style="font-size: 12px;float: left;margin-top:6px">
-                            <i class="fa fa-percent" aria-hidden="true"></i></a><span
-                            style="border-top: dotted 1px;margin-top: 3px;float: right;"><span class="blue"
+                            style="font-size: 12px;float: left;margin-top:8px">
+                            <i class="fa fa-percent" aria-hidden="true"></i></a><span class="kot-total"><span class="blue"
                                 ng-if="vm.isDiscountApplied($index) && order.discountType=='%'">{{order.discountValue}} % off
                             </span><span class="blue"
                                 ng-if="vm.isDiscountApplied($index) && order.discountType=='flat'">flat
@@ -611,9 +677,6 @@
                         <div ng-if="order.comments" class="comments"><br />{{order.comments}}</div>
                         <br />
                         <hr />
-                        <button type="button"
-                            title="Click here if KOT was created by mistake or it needs to be deleted anyway"
-                            class="btn btn-danger btn-sm pull-left" ng-click="vm.discardKOT($index)">Discard</button>
                         <button type="button" ng-if="vm.getPendingOrdersCount()> 1 && !order.isCompleted"
                             title="Click here to make changes in this KOT"
                             ng-class="{'btn-primary': vm.currentIndex== $index}" class="btn btn-sm"
@@ -621,7 +684,7 @@
                         <button ng-disabled="order.order.length==0" ng-if="order.isCompleted" type="button"
                             class="btn btn-danger btn-sm pull-right" ng-click="vm.reopenKOT($index)">Reopen</button>
                         <button ng-disabled="order.order.length==0" ng-if="!order.isCompleted" type="button"
-                            class="btn btn-success btn-sm pull-right"
+                            class="btn btn-success pull-right"
                             ng-click="vm.completeKOT($index)">Complete</button>
                     </div>
                 </div>
@@ -1836,12 +1899,10 @@
             }
 
             function discardKOT(index) {
-                var conf;
-                if (vm.settings.disableAllConfirmations) {
-                    conf = true;
-                } else {
-                    conf = confirm('Are you sure you want to discard this KOT. This action can\'t be reverted.');
-                }
+                // Deliberately ignores "Disable All Confirmations": this is the only control on the
+                // card that destroys work, and there is no undo.
+                var conf = confirm('Discard KOT ' + getKOTToDisplay(index) +
+                    '? This cannot be undone.');
                 if (conf) {
                     vm.orders[index].isDiscarded = true;
                     // Without this the discarded (and now hidden) KOT stays selected and silently

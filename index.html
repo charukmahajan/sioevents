@@ -1235,16 +1235,7 @@
                 if (!body) {
                     return;
                 }
-                var WinPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
-                if (!WinPrint) {
-                    alert('Please allow popups to print the report.');
-                    return;
-                }
-                WinPrint.document.write(buildPrintDocument('<h3>Sales report</h3>' + body.innerHTML));
-                WinPrint.document.close();
-                WinPrint.focus();
-                WinPrint.print();
-                WinPrint.close();
+                printThroughFrame(buildPrintDocument('<h3>Sales report</h3>' + body.innerHTML));
             }
 
             function getTotalSales() {
@@ -1470,19 +1461,52 @@
                 if (!order || !order.order || order.order.length === 0) {
                     return;
                 }
-                var WinPrint = window.open('', '', 'left=0,top=0,width=400,height=900,toolbar=0,scrollbars=0,status=0');
-                if (!WinPrint) {
-                    alert('Please allow popups to print the KOT.');
-                    return;
-                }
-                WinPrint.document.write(buildKotDocument(index));
-                WinPrint.document.close();
-                applySlipPageSizes(WinPrint);
-                WinPrint.focus();
-                WinPrint.print();
-                WinPrint.close();
+                printThroughFrame(buildKotDocument(index), applySlipPageSizes);
                 // NOTE: completing the order is the caller's job (completeKOT) - doing it here too
                 // ran completeOrder twice.
+            }
+
+            /// Printing goes through an off-screen iframe rather than window.open. A popup can be
+            /// refused by the browser's blocker or by an ad-blocking extension - and when it is,
+            /// printing simply stops working with nothing to show for it. An iframe cannot be blocked,
+            /// needs no permission, and never steals focus from the counter screen.
+            function getPrintFrame() {
+                var frame = document.getElementById('sioPrintFrame');
+                if (!frame) {
+                    frame = document.createElement('iframe');
+                    frame.id = 'sioPrintFrame';
+                    frame.setAttribute('aria-hidden', 'true');
+                    // Positioned off-screen rather than hidden or zero-sized: it still has to lay out
+                    // at the real roll width for the per-slip height measurement to mean anything.
+                    frame.style.cssText = 'position:fixed;left:-10000px;top:0;border:0;' +
+                        'width:' + Math.round(SLIP_WIDTH_MM * 96 / 25.4) + 'px;height:2000px;';
+                    document.body.appendChild(frame);
+                }
+                return frame;
+            }
+
+            function printThroughFrame(markup, beforePrint) {
+                var frame = getPrintFrame();
+                var win = frame.contentWindow;
+                var previous = document.activeElement;
+                win.document.open();
+                win.document.write(markup);
+                win.document.close();
+                if (beforePrint) {
+                    beforePrint(win);
+                }
+                win.print();
+                // Focus must not be left inside the frame: the item hotkeys listen on the main
+                // document, so every key after the first print would otherwise go nowhere.
+                try {
+                    frame.blur();
+                    window.focus();
+                    if (previous && previous !== frame && typeof previous.focus === 'function') {
+                        previous.focus();
+                    }
+                } catch (e) {
+                    // focus juggling is best-effort; printing has already happened
+                }
             }
 
             /// Letters are assigned from the item's position in the FULL menu, never the filtered

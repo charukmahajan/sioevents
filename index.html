@@ -26,7 +26,7 @@
 <html lang="en" ng-app="main">
 
 <head>
-    <title>SIO-1</title>
+    <title>SIO</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -960,13 +960,11 @@
                 // A page box wider than it is tall is LANDSCAPE, and the printer duly rotates it.
                 // Slips are only 40-70mm tall on an 80mm roll, so every one of them tripped this.
                 SLIP_MIN_HEIGHT_MM = 81,
-                // The printer's auto-cutter fires when the DRIVER decides a page has ended - a browser
-                // cannot command a cut. So the page we ask for has to match the driver's configured
-                // paper length, or the driver never sees a page end and never cuts.
-                // Set to the driver's paper length (currently 80x210). Set to 0 to size each order to
-                // its content instead - tighter on paper, but only cuts if the driver's page length
-                // is set to variable/receipt rather than a fixed 210mm.
-                SLIP_FIXED_HEIGHT_MM = 210,
+                // This printer does not auto-cut at all (confirmed: another app on the same printer
+                // does not cut either), so there is no cut to be bought by matching the driver's
+                // paper length - pages are sized to their content and torn by hand at the CUT lines.
+                // Set to a length in mm only if a cutter is ever enabled and needs a fixed page.
+                SLIP_FIXED_HEIGHT_MM = 0,
                 PRINT_KEY = 'p';         // reserved: prints the selected KOT without completing it
             vm.currentOrder = [];
             vm.orders = [];
@@ -1743,16 +1741,20 @@
             function applySlipPageSizes(win) {
                 try {
                     var doc = win.document;
-                    var measuredMm = Math.ceil(doc.body.getBoundingClientRect().height / 96 * 25.4) +
-                        2 * SLIP_MARGIN_MM + SLIP_PAD_MM;
-                    // The floor keeps the page taller than it is wide; anything wider than it is tall
-                    // is landscape and the printer rotates it.
-                    var heightMm = SLIP_FIXED_HEIGHT_MM > 0 ? SLIP_FIXED_HEIGHT_MM :
-                        Math.max(measuredMm, SLIP_MIN_HEIGHT_MM);
+                    var slips = doc.querySelectorAll('.slip');
+                    var css = '';
+                    for (var i = 0; i < slips.length; i++) {
+                        var measuredMm = Math.ceil(slips[i].getBoundingClientRect().height / 96 * 25.4) +
+                            2 * SLIP_MARGIN_MM + SLIP_PAD_MM;
+                        // The floor keeps each page taller than it is wide; anything wider than it is
+                        // tall is landscape and the printer rotates it.
+                        var heightMm = SLIP_FIXED_HEIGHT_MM > 0 ? SLIP_FIXED_HEIGHT_MM :
+                            Math.max(measuredMm, SLIP_MIN_HEIGHT_MM);
+                        css += '@page s' + i + ' { size: ' + SLIP_WIDTH_MM + 'mm ' + heightMm +
+                            'mm; margin: ' + SLIP_MARGIN_MM + 'mm; } .s' + i + ' { page: s' + i + '; } ';
+                    }
                     var style = doc.createElement('style');
-                    style.appendChild(doc.createTextNode(
-                        '@page { size: ' + SLIP_WIDTH_MM + 'mm ' + heightMm + 'mm; margin: ' +
-                        SLIP_MARGIN_MM + 'mm; }'));
+                    style.appendChild(doc.createTextNode(css));
                     doc.head.appendChild(style);
                 } catch (e) {
                     // Measuring is a nicety; if it fails the driver's own paper size still applies.
@@ -1834,7 +1836,7 @@
                     '</td></tr></table>' : '';
                 var comments = order.comments ?
                     '<div class="cmt">' + escapeHtml(order.comments) + '</div>' : '';
-                return '<div class="slip">' +
+                return '<div class="slip s' + (position - 1) + '">' +
                     '<img class="logo" src="data:image/png;base64,' + vm.logoData + '" alt="" />' +
                     '<div class="brand">SHAKE IT OFF</div>' +
                     '<div class="head">' + seq + '<span class="kotno">KOT ' + getKOTToDisplay(index) +
@@ -1851,7 +1853,7 @@
                 var groups = getOrderGroups(index);
                 var slips = _.map(groups, function (group, i) {
                     return buildSlipMarkup(index, group, i + 1, groups.length);
-                }).join('<div class="cutline">CUT</div>');
+                }).join('');
                 return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>KOT ' +
                     getKOTToDisplay(index) + '</title>' + KOT_SLIP_STYLES + '</head><body>' + slips +
                     '</body></html>';
@@ -1868,28 +1870,29 @@
                 'html, body { margin: 0; padding: 0; }' +
                 'body { font-family: Arial, Helvetica, sans-serif; color: #000; width: ' +
                 (SLIP_WIDTH_MM - 2 * SLIP_MARGIN_MM) + 'mm; }' +
-                '.slip { padding-bottom: 1mm; }' +
-                // One page per ORDER, not per slip: a page per slip left 40mm+ of blank paper
-                // trailing each one, which on a continuous roll reads as a huge gap before the next.
-                '.cutline { border-top: dashed 1px #000; text-align: center; font-size: 8px;' +
-                ' letter-spacing: 2px; margin: 3mm 0 2mm; padding-top: 1px; }' +
+                // A page per slip, because the printer's cutter fires once per PAGE and each
+                // station needs its own slip. A page also cannot be shorter than it is wide (80mm)
+                // without printing landscape, so that height is spent whatever we do - it goes on
+                // legible type rather than blank paper.
+                '.slip { page-break-after: always; padding-bottom: 2mm; }' +
+                '.slip:last-child { page-break-after: auto; }' +
                 '.logo { display: block; margin: 0 auto 1px; height: 32px; width: 32px; }' +
                 '.brand { text-align: center; font-size: 10px; font-weight: bold; letter-spacing: 2px; }' +
                 '.head { overflow: hidden; margin-top: 3px; }' +
-                '.kotno { font-size: 19px; font-weight: bold; }' +
-                '.seq { float: right; font-size: 10px; padding-top: 7px; }' +
-                '.cust { font-size: 15px; font-weight: bold; line-height: 1.1; }' +
-                '.when { font-size: 10px; }' +
-                '.group { text-align: center; font-size: 15px; font-weight: bold; text-transform: uppercase;' +
+                '.kotno { font-size: 32px; font-weight: bold; }' +
+                '.seq { float: right; font-size: 12px; padding-top: 16px; }' +
+                '.cust { font-size: 20px; font-weight: bold; line-height: 1.15; }' +
+                '.when { font-size: 12px; }' +
+                '.group { text-align: center; font-size: 24px; font-weight: bold; text-transform: uppercase;' +
                 ' letter-spacing: 1px; border-top: 1px dashed #000; border-bottom: 1px dashed #000;' +
-                ' padding: 2px 0; margin: 4px 0 3px; }' +
+                ' padding: 8px 0; margin: 10px 0 8px; }' +
                 'table.items, table.tot { width: 100%; border-collapse: collapse; }' +
-                'table.items td { padding: 1px 0; vertical-align: top; font-size: 14px; }' +
-                'td.q { width: 24px; font-weight: bold; }' +
-                'td.p { text-align: right; width: 52px; white-space: nowrap; }' +
-                'table.tot { border-top: 1px solid #000; margin-top: 3px; }' +
-                'table.tot td { font-size: 13px; font-weight: bold; padding-top: 2px; }' +
-                '.cmt { font-size: 11px; font-style: italic; margin-top: 3px; }' +
+                'table.items td { padding: 8px 0; vertical-align: top; font-size: 23px; }' +
+                'td.q { width: 36px; font-weight: bold; }' +
+                'td.p { text-align: right; width: 64px; white-space: nowrap; }' +
+                'table.tot { border-top: 1px solid #000; margin-top: 8px; }' +
+                'table.tot td { font-size: 18px; font-weight: bold; padding-top: 7px; }' +
+                '.cmt { font-size: 16px; font-style: italic; margin-top: 8px; }' +
                 '</style>';
 
             function buildPrintDocument(bodyMarkup) {

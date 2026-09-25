@@ -606,7 +606,10 @@
             <button type="button" class="btn btn-sm btn-secondary" ng-click="vm.exportOrders()"
                 title="Download every order (open, completed and discarded) as a CSV">Export CSV</button>
             <button type="button" class="btn btn-sm btn-danger" ng-click="vm.clearAllOrders()"
-                title="Deletes all orders and restarts KOT numbering at 0001">End event &amp; clear orders</button>
+                title="Deletes all orders and restarts KOT numbering at 1">End event &amp; clear orders</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" ng-click="vm.clearAllData()"
+                title="Wipes everything stored on this device - orders, stock, custom menu items and settings - then reloads">Clear
+                all data</button>
         </div>
     </div>
     <div class="container-fluid text-center">
@@ -1014,6 +1017,7 @@
             vm.addMenuItem = addMenuItem;
             vm.resetMenutoDefault = resetMenutoDefault;
             vm.clearAllOrders = clearAllOrders;
+            vm.clearAllData = clearAllData;
             vm.exportOrders = exportOrders;
             vm.isDiscountApplied = isDiscountApplied;
             vm.getDiscountError = getDiscountError;
@@ -1414,6 +1418,29 @@
                 vm.orderIndexForDiscount = -1;
                 removeDatafromLocalStorage(backUpKey);
                 recalculateStats();
+            }
+
+            /// Nuclear reset: everything this app has ever stored on the device, then a reload.
+            /// Unlike "End event", it takes no CSV backup - it is a start-from-scratch button, so the
+            /// confirmation spells out exactly what goes. Always asks, whatever the confirmations
+            /// setting says, because nothing here can be undone.
+            function clearAllData() {
+                var counts = 'Orders: ' + vm.orders.length +
+                    ', tracked stock items: ' + _.keys(vm.stock).length +
+                    ', custom menu items: ' + vm.extendedData.length + '.';
+                if (!confirm('Clear ALL data saved on this device?\n\n' + counts + '\n\n' +
+                    'This removes every order, stock level, custom menu item and setting, then ' +
+                    'reloads the page. It cannot be undone, and no CSV backup is taken - use ' +
+                    'Export CSV first if you still need the orders.')) {
+                    return;
+                }
+                try {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                } catch (e) {
+                    // storage blocked (private window): there is nothing to clear anyway
+                }
+                location.reload();
             }
 
             function exportOrders() {

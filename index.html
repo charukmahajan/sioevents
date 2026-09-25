@@ -26,7 +26,7 @@
 <html lang="en" ng-app="main">
 
 <head>
-    <title>SIO</title>
+    <title>SIO-1</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -960,9 +960,13 @@
                 // A page box wider than it is tall is LANDSCAPE, and the printer duly rotates it.
                 // Slips are only 40-70mm tall on an 80mm roll, so every one of them tripped this.
                 SLIP_MIN_HEIGHT_MM = 81,
-                // Set this to a number (e.g. 210) to pin every slip to a fixed page height, for a
-                // driver whose paper length is not variable. 0 = size each slip to its content.
-                SLIP_FIXED_HEIGHT_MM = 0,
+                // The printer's auto-cutter fires when the DRIVER decides a page has ended - a browser
+                // cannot command a cut. So the page we ask for has to match the driver's configured
+                // paper length, or the driver never sees a page end and never cuts.
+                // Set to the driver's paper length (currently 80x210). Set to 0 to size each order to
+                // its content instead - tighter on paper, but only cuts if the driver's page length
+                // is set to variable/receipt rather than a fixed 210mm.
+                SLIP_FIXED_HEIGHT_MM = 210,
                 PRINT_KEY = 'p';         // reserved: prints the selected KOT without completing it
             vm.currentOrder = [];
             vm.orders = [];

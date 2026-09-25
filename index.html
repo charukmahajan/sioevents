@@ -26,7 +26,7 @@
 <html lang="en" ng-app="main">
 
 <head>
-    <title>SIO</title>
+    <title>S I O</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -956,15 +956,6 @@
                 UNGROUPED_LABEL = 'Counter',
                 SLIP_WIDTH_MM = 80,      // change to 58 for a 58mm roll
                 SLIP_MARGIN_MM = 2,
-                SLIP_PAD_MM = 3,         // guard against rounding pushing a slip onto a second page
-                // A page box wider than it is tall is LANDSCAPE, and the printer duly rotates it.
-                // Slips are only 40-70mm tall on an 80mm roll, so every one of them tripped this.
-                SLIP_MIN_HEIGHT_MM = 81,
-                // This printer does not auto-cut at all (confirmed: another app on the same printer
-                // does not cut either), so there is no cut to be bought by matching the driver's
-                // paper length - pages are sized to their content and torn by hand at the CUT lines.
-                // Set to a length in mm only if a cutter is ever enabled and needs a fixed page.
-                SLIP_FIXED_HEIGHT_MM = 0,
                 PRINT_KEY = 'p';         // reserved: prints the selected KOT without completing it
             vm.currentOrder = [];
             vm.orders = [];
@@ -1572,7 +1563,7 @@
                 if (!order || !order.order || order.order.length === 0) {
                     return;
                 }
-                printThroughFrame(buildKotDocument(index), applySlipPageSizes);
+                printThroughFrame(buildKotDocument(index));
                 // NOTE: completing the order is the caller's job (completeKOT) - doing it here too
                 // ran completeOrder twice.
             }
@@ -1735,32 +1726,6 @@
                 angular.element(document).off('keydown', onDocumentKeydown);
             });
 
-            /// Gives every slip its own page box, exactly as tall as the slip. Without this a roll
-            /// printer feeds a full sheet's worth of blank paper after each short slip, because CSS
-            /// has no way to say "as tall as the content".
-            function applySlipPageSizes(win) {
-                try {
-                    var doc = win.document;
-                    var slips = doc.querySelectorAll('.slip');
-                    var css = '';
-                    for (var i = 0; i < slips.length; i++) {
-                        var measuredMm = Math.ceil(slips[i].getBoundingClientRect().height / 96 * 25.4) +
-                            2 * SLIP_MARGIN_MM + SLIP_PAD_MM;
-                        // The floor keeps each page taller than it is wide; anything wider than it is
-                        // tall is landscape and the printer rotates it.
-                        var heightMm = SLIP_FIXED_HEIGHT_MM > 0 ? SLIP_FIXED_HEIGHT_MM :
-                            Math.max(measuredMm, SLIP_MIN_HEIGHT_MM);
-                        css += '@page s' + i + ' { size: ' + SLIP_WIDTH_MM + 'mm ' + heightMm +
-                            'mm; margin: ' + SLIP_MARGIN_MM + 'mm; } .s' + i + ' { page: s' + i + '; } ';
-                    }
-                    var style = doc.createElement('style');
-                    style.appendChild(doc.createTextNode(css));
-                    doc.head.appendChild(style);
-                } catch (e) {
-                    // Measuring is a nicety; if it fails the driver's own paper size still applies.
-                }
-            }
-
             /// The group an item belongs to, falling back to the catch-all so nothing can be
             /// silently left off every slip just because someone forgot to set a group.
             function getItemGroup(itemName) {
@@ -1863,13 +1828,15 @@
             /// nothing feeds blank paper between slips. The browser's own header/footer (URL, date,
             /// page number) is NOT reachable from CSS - that is a checkbox in the print dialog.
             var KOT_SLIP_STYLES = '<style>' +
-                // No "size" here on purpose: "80mm auto" is invalid CSS and Chrome drops the whole
-                // declaration, falling back to Letter. Exact per-slip sizes are measured and injected
-                // by applySlipPageSizes(); without them the printer driver's own roll size applies.
-                '@page { margin: ' + SLIP_MARGIN_MM + 'mm; }' +
+                // Deliberately NO "size" here. Declaring one makes Chrome hide the Layout control
+                // and scale/centre our small page onto the driver's much longer sheet, which shows up
+                // as a big blank band above every slip. Leaving it out lets the driver's own roll
+                // paper apply and the content start at the top, which is what a working receipt app
+                // does. Orientation then comes from Chrome's Layout setting - keep it on Portrait.
+                '@page { margin: 0; }' +
                 'html, body { margin: 0; padding: 0; }' +
-                'body { font-family: Arial, Helvetica, sans-serif; color: #000; width: ' +
-                (SLIP_WIDTH_MM - 2 * SLIP_MARGIN_MM) + 'mm; }' +
+                'body { font-family: Arial, Helvetica, sans-serif; color: #000; width: auto;' +
+                ' padding: 0 ' + SLIP_MARGIN_MM + 'mm ' + SLIP_MARGIN_MM + 'mm; }' +
                 // A page per slip, because the printer's cutter fires once per PAGE and each
                 // station needs its own slip. A page also cannot be shorter than it is wide (80mm)
                 // without printing landscape, so that height is spent whatever we do - it goes on

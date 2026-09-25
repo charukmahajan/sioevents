@@ -26,7 +26,7 @@
 <html lang="en" ng-app="main">
 
 <head>
-    <title>SIO</title>
+    <title>SIO-V1</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -957,6 +957,12 @@
                 SLIP_WIDTH_MM = 80,      // change to 58 for a 58mm roll
                 SLIP_MARGIN_MM = 2,
                 SLIP_PAD_MM = 3,         // guard against rounding pushing a slip onto a second page
+                // A page box wider than it is tall is LANDSCAPE, and the printer duly rotates it.
+                // Slips are only 40-70mm tall on an 80mm roll, so every one of them tripped this.
+                SLIP_MIN_HEIGHT_MM = 81,
+                // Set this to a number (e.g. 210) to pin every slip to a fixed page height, for a
+                // driver whose paper length is not variable. 0 = size each slip to its content.
+                SLIP_FIXED_HEIGHT_MM = 0,
                 PRINT_KEY = 'p';         // reserved: prints the selected KOT without completing it
             vm.currentOrder = [];
             vm.orders = [];
@@ -1736,8 +1742,10 @@
                     var slips = doc.querySelectorAll('.slip');
                     var css = '';
                     for (var i = 0; i < slips.length; i++) {
-                        var heightMm = Math.ceil(slips[i].getBoundingClientRect().height / 96 * 25.4) +
+                        var measuredMm = Math.ceil(slips[i].getBoundingClientRect().height / 96 * 25.4) +
                             2 * SLIP_MARGIN_MM + SLIP_PAD_MM;
+                        var heightMm = SLIP_FIXED_HEIGHT_MM > 0 ? SLIP_FIXED_HEIGHT_MM :
+                            Math.max(measuredMm, SLIP_MIN_HEIGHT_MM);
                         css += '@page s' + i + ' { size: ' + SLIP_WIDTH_MM + 'mm ' + heightMm +
                             'mm; margin: ' + SLIP_MARGIN_MM + 'mm; } .s' + i + ' { page: s' + i + '; } ';
                     }

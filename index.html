@@ -1071,6 +1071,7 @@
             function loadStock() {
                 var saved = getDataFromLocalStorage(backUpKeyStock);
                 vm.stock = saved || {};
+                pruneStockOfMissingItems();
                 seedStockFromMenu();
                 vm.stockOpening = {};
                 _.each(vm.stock, function (entry, name) {
@@ -1129,6 +1130,26 @@
                     return o.name === name;
                 });
                 return item && isValidNumber(item.stock) ? parseFloat(item.stock) : null;
+            }
+
+            /// Stock entries are keyed by item name, so renaming or removing a menu item strands
+            /// its entry - and the Stock screen only lists items that are on the menu, so a stranded
+            /// entry could never be cleared from the UI and would haunt the sales report forever.
+            function pruneStockOfMissingItems() {
+                var onMenu = {};
+                _.each(vm.data, function (item) {
+                    onMenu[item.name] = true;
+                });
+                var dropped = false;
+                _.each(_.keys(vm.stock), function (name) {
+                    if (!onMenu[name]) {
+                        delete vm.stock[name];
+                        dropped = true;
+                    }
+                });
+                if (dropped) {
+                    saveDataInLocalStorage(vm.stock, backUpKeyStock);
+                }
             }
 
             function saveStock() {
@@ -2177,10 +2198,10 @@
                 "name": "Paneer Roll",
                 "description": "",
                 "price": "149",
-                "stock": 40,
+                "stock": 50,
                 "group": "Sw/Roll"
             }, {
-                "name": "Potato Roll",
+                "name": "Aloo Tikki Roll",
                 "description": "",
                 "price": "129",
                 "stock": 10,
@@ -2208,7 +2229,7 @@
                 "description": "",
                 "price": "40",
                 "stock": 5,
-                "group": "Bev"
+                "group": "tea/snacks"
             }, {
                 "name": "Tea",
                 "description": "",
@@ -2223,26 +2244,26 @@
                 "name": "Mazza",
                 "description": "",
                 "price": "10",
-                "stock": 40,
-                "group": "Bev"
+                "stock": 40
+                //,"group": "Bev"
             }, {
                 "name": "Real Litchi Juice",
                 "description": "",
                 "price": "10",
-                "stock": 13,
-                "group": "Bev"
+                "stock": 13
+                //,"group": "Bev"
             }, {
                 "name": "Paper boat Orange Juice 160ml",
                 "description": "",
                 "price": "25",
-                "stock": 15,
-                "group": "Bev"
+                "stock": 15
+                //,"group": "Bev"
             }, {
                 "name": "Paper boat Aamras 200ml",
                 "description": "",
                 "price": "40",
-                "stock": 11,
-                "group": "Bev"
+                "stock": 11
+                //,"group": "Bev"
             }, {
                 "name": "Kitkat mini",
                 "description": "",
